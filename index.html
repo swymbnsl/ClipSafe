@@ -47,24 +47,35 @@
           <div id="settings" class="tab-pane">
             <div class="settings-container">
               <div class="setting-group">
-                <h3>Application Settings</h3>
+                <h3><i class="fas fa-sliders"></i> Application Settings</h3>
                 <div class="setting-item">
                   <label>
                     <input type="checkbox" id="start-minimized" />
-                    Start Minimized
+                    <span>Start Minimized</span>
                   </label>
+                  <div class="description">
+                    Launch ClipSafe in the system tray when Windows starts
+                  </div>
                 </div>
                 <div class="setting-item">
                   <label>
                     <input type="checkbox" id="start-monitoring" />
-                    Start Monitoring on Launch
+                    <span>Start Monitoring on Launch</span>
                   </label>
+                  <div class="description">
+                    Automatically start clipboard monitoring when the app
+                    launches
+                  </div>
                 </div>
                 <div class="setting-item">
                   <label>
                     <input type="checkbox" id="show-notifications" checked />
-                    Show Notifications
+                    <span>Show Notifications</span>
                   </label>
+                  <div class="description">
+                    Display toast notifications for clipboard events and
+                    warnings
+                  </div>
                 </div>
               </div>
 

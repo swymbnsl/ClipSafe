@@ -370,6 +370,139 @@ body {
   word-break: break-all;
 }
 
+/* Settings Tab */
+.settings-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.setting-group {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.setting-group h3 {
+  color: var(--text-color);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setting-group h3 i {
+  color: var(--primary-color);
+  font-size: 20px;
+}
+
+.setting-item {
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg-color);
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.setting-item:last-child {
+  margin-bottom: 0;
+}
+
+.setting-item:hover {
+  background: var(--border-color);
+}
+
+.setting-item label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.setting-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.setting-item input[type="checkbox"]:checked {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.setting-item input[type="checkbox"]:checked::after {
+  content: "\f00c";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+}
+
+.setting-item input[type="checkbox"]:hover {
+  border-color: var(--primary-color);
+}
+
+.setting-item span {
+  font-size: 15px;
+  color: var(--text-color);
+}
+
+.setting-item .description {
+  margin-left: 32px;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+/* Save Settings Button */
+#save-settings {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 24px;
+}
+
+#save-settings:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+#save-settings:active {
+  transform: translateY(0);
+}
+
+#save-settings i {
+  font-size: 18px;
+}
+
 /* Settings Form */
 .settings-form {
   background-color: var(--card-bg);
