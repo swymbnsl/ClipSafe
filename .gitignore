@@ -1,0 +1,60 @@
+# Node modules
+node_modules/
+
+# Electron build output
+/dist/
+/out/
+/build/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Optional npm cache directory
+.npm
+
+# VSCode settings
+.vscode/
+
+# Environment variables
+.env
+.env.*
+
+# Electron specific
+*.asar
+*.bak
+*.orig
+
+# Sentry CLI
+.sentryclirc
+
+# TypeScript build
+*.tsbuildinfo
+
+# Testing
+/coverage/
+/test-results/
+
+# Electron Forge / Packager / Builder cache
+/.webpack/
+/.release/
+/make/
+/dist_electron/
+/electron-builder.json
+/*.snap
+/*.deb
+/*.AppImage
+/*.dmg
+/*.exe
+/*.msi
+
+# Misc
+*.swp
+.idea/
