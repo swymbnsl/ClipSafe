@@ -148,62 +148,37 @@ function addActivityItem(data) {
   const activityItem = document.createElement("div")
   activityItem.className = "activity-item"
 
-  try {
-    const msgData = typeof data.message === 'string' ? JSON.parse(data.message) : data.message
-    const type = msgData.local_check?.is_safe === false || msgData.groq_analysis?.is_safe === false ? 'warning' : 'success'
-    const iconClass = type === 'warning' ? 'fa-exclamation-triangle' : 'fa-check-circle'
-    
-    let content = `<div class="log-section content-preview">
-      <strong>Copied Content:</strong><br>
-      <pre>${msgData.details?.content_preview || 'N/A'}</pre>
-    </div>`
-
-    if (msgData.local_check) {
-      content += `<div class="log-section">
-        <strong>Local Check:</strong> ${msgData.local_check.message}
-      </div>`
-    }
-
-    if (msgData.groq_analysis) {
-      const groq = msgData.groq_analysis
-      content += `<div class="log-section">
-        <strong>AI Analysis:</strong><br>
-        • Category: ${groq.category}<br>
-        • Confidence: ${(groq.confidence * 100).toFixed(1)}%<br>
-        • Assessment: ${groq.explanation}<br>
-        ${groq.potential_threat !== 'None identified' ? `• <span class="threat">Threat: ${groq.potential_threat}</span>` : ''}
-      </div>`
-    }
-
-    activityItem.innerHTML = `
-      <div class="activity-icon ${type}">
-        <i class="fas ${iconClass}"></i>
-      </div>
-      <div class="activity-content">
-        <div class="activity-title">${data.title}</div>
-        <div class="activity-message">${content}</div>
-        <div class="activity-time">${new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        })}</div>
-      </div>`
-  } catch (e) {
-    // Fallback for unparseable messages
-    activityItem.innerHTML = `
-      <div class="activity-icon ${data.type || 'info'}">
-        <i class="fas ${iconClass}"></i>
-      </div>
-      <div class="activity-content">
-        <div class="activity-title">${data.title || 'Log Entry'}</div>
-        <div class="activity-message">${data.message}</div>
-        <div class="activity-time">${new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        })}</div>
-      </div>`
+  let iconClass
+  switch (data.type) {
+    case "success":
+      iconClass = "fa-check-circle"
+      break
+    case "warning":
+      iconClass = "fa-exclamation-triangle"
+      break
+    case "danger":
+      iconClass = "fa-ban"
+      break
+    default:
+      iconClass = "fa-info-circle"
   }
+
+  const time = new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  })
+
+  activityItem.innerHTML = `
+    <div class="activity-icon ${data.type}">
+      <i class="fas ${iconClass}"></i>
+    </div>
+    <div class="activity-content">
+      <div class="activity-title">${data.title}</div>
+      <div class="activity-message">${data.message}</div>
+      <div class="activity-time">${time}</div>
+    </div>
+  `
 
   activityList.insertBefore(activityItem, activityList.firstChild)
 
@@ -213,7 +188,7 @@ function addActivityItem(data) {
   }
 
   // Update stats
-  updateStats(type)
+  updateStats(data.type)
 }
 
 // Update Stats
@@ -233,53 +208,18 @@ function updateStats(type) {
 
 // Listen for notifications from main process
 window.api.onNotification((data) => {
-  // Only add to activity list, skip toast notifications
-  addActivityItem({
-    type: data.type,
-    title: data.title,
-    message: data.message,
-  })
-})
-
-// Handle custom notifications
-window.api.onNotification((data) => {
+  // Only show notification if enabled in settings
   if (showNotificationsCheckbox.checked) {
-    const notification = document.createElement('div')
-    notification.className = `custom-notification ${data.type}`
-    
-    const iconClass = data.type === 'success' ? 'fa-check-circle' :
-                      data.type === 'warning' ? 'fa-exclamation-triangle' :
-                      data.type === 'danger' ? 'fa-ban' : 'fa-info-circle'
-    
-    notification.innerHTML = `
-      <div class="custom-notification-header">
-        <i class="fas ${iconClass} custom-notification-icon"></i>
-        <h3 class="custom-notification-title">${data.title}</h3>
-        <button class="custom-notification-close">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <p class="custom-notification-message">${data.message}</p>
-    `
+    // Show custom toast instead of native notification
+    const actions = data.actions || [
+      {
+        text: "Dismiss",
+        primary: false,
+        onClick: () => {},
+      },
+    ]
 
-    document.body.appendChild(notification)
-
-    // Add click handler for close button
-    const closeBtn = notification.querySelector('.custom-notification-close')
-    closeBtn.addEventListener('click', () => {
-      notification.style.animation = 'slideOut 0.3s ease-out forwards'
-      setTimeout(() => notification.remove(), 300)
-    })
-
-    // Auto remove after 5 seconds for success messages
-    if (data.type === 'success') {
-      setTimeout(() => {
-        if (notification.parentElement) {
-          notification.style.animation = 'slideOut 0.3s ease-out forwards'
-          setTimeout(() => notification.remove(), 300)
-        }
-      }, 5000)
-    }
+    showToast(data.title, data.message, data.type, actions)
   }
 
   // Always add to activity list
@@ -306,26 +246,6 @@ window.api.onShowLogs(() => {
       btn.click()
     }
   })
-})
-
-// Add handler for showing log details
-window.api.onLogDetails((details) => {
-  // Switch to activity tab
-  tabButtons.forEach((btn) => {
-    if (btn.getAttribute("data-tab") === "activity") {
-      btn.click();
-    }
-  });
-  
-  // Highlight the relevant log entry
-  const logEntries = activityList.querySelectorAll('.activity-item');
-  logEntries.forEach(entry => {
-    if (entry.querySelector('.activity-time').textContent === details.timestamp) {
-      entry.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      entry.classList.add('highlight');
-      setTimeout(() => entry.classList.remove('highlight'), 2000);
-    }
-  });
 })
 
 // Initialize

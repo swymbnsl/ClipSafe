@@ -21,7 +21,6 @@ const store = new Store()
 let mainWindow
 let tray = null
 let pythonProcess = null
-let notificationWindow = null;
 
 // Create the main window
 function createWindow() {
@@ -139,25 +138,24 @@ function startPythonProcess() {
     try {
       const data = JSON.parse(message)
 
-      // Always send to main window for activity logs
-      if (mainWindow) {
-        if (data.type === "notification") {
-          mainWindow.webContents.send("notification", data);
-        } else if (data.type === "log") {
-          mainWindow.webContents.send("log", data);
-        }
-      }
+      if (data.type === "notification") {
+        // Show notification
+        notifier.notify({
+          title: data.title,
+          message: data.message,
+          icon: path.join(__dirname, "assets/icon.png"),
+          sound: true,
+        })
 
-      // Only create notification window for harmful content
-      if (data.type === "notification" && 
-         (data.notification_type === 'warning' || data.notification_type === 'danger')) {
-        createNotificationWindow(() => {
-          notificationWindow.webContents.send('show-notification', {
-            title: data.title,
-            message: data.message,
-            type: data.notification_type
-          });
-        });
+        // Send to renderer process
+        if (mainWindow) {
+          mainWindow.webContents.send("notification", data)
+        }
+      } else if (data.type === "log") {
+        // Send log to renderer process
+        if (mainWindow) {
+          mainWindow.webContents.send("log", data)
+        }
       }
     } catch (error) {
       console.error("Error parsing Python message:", error)
@@ -180,56 +178,6 @@ function stopPythonProcess() {
     pythonProcess = null
   }
 }
-
-// Create notification window
-function createNotificationWindow(callback) {
-  // If window already exists, just show notification
-  if (notificationWindow) {
-    callback();
-    return;
-  }
-
-  notificationWindow = new BrowserWindow({
-    width: 500, // Increased from 380
-    height: 0,
-    frame: false,
-    skipTaskbar: true,
-    alwaysOnTop: true,
-    transparent: true,
-    focusable: false,
-    show: false, // Start hidden
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
-    }
-  });
-
-  notificationWindow.loadFile('notification.html');
-  
-  notificationWindow.webContents.once('did-finish-load', () => {
-    const { screen } = require('electron');
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { width, height } = primaryDisplay.workAreaSize;
-    
-    notificationWindow.setBounds({
-      width: 500, // Increased from 380
-      height: 200, // Increased from 100
-      x: width - 520, // Adjusted for new width
-      y: height - 220 // Adjusted for new height
-    });
-    
-    notificationWindow.show();
-    callback();
-  });
-}
-
-// Handle notification window cleanup
-ipcMain.on('notification-closed', () => {
-  if (notificationWindow) {
-    notificationWindow.close();
-    notificationWindow = null;
-  }
-});
 
 // App ready event
 app.whenReady().then(() => {
@@ -268,16 +216,6 @@ ipcMain.on("view-logs", () => {
     mainWindow.webContents.send("show-logs")
   }
 })
-
-ipcMain.on('show-details', (event, details) => {
-  if (mainWindow === null) {
-    createWindow();
-  }
-  mainWindow.show();
-  mainWindow.focus();
-  // Switch to activity tab and scroll to relevant log
-  mainWindow.webContents.send('show-log-details', details);
-});
 
 // Clean up on exit
 app.on("before-quit", () => {
