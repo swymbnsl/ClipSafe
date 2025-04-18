@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        #notification-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="notification-container"></div>
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        function formatGroqAnalysis(groq) {
+            return `
+                <div class="groq-analysis">
+                    <div class="analysis-header">
+                        <i class="fas fa-robot"></i>
+                        <span>AI Analysis (${(groq.confidence * 100).toFixed()}% confidence)</span>
+                    </div>
+                    <div class="analysis-content">
+                        <p>${groq.explanation}</p>
+                        ${groq.potential_threat !== 'None identified' ?
+                    `<p class="threat"><i class="fas fa-exclamation-triangle"></i> ${groq.potential_threat}</p>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        ipcRenderer.on('show-notification', (event, data) => {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `custom-notification ${data.type}`;
+
+            try {
+                const messageData = typeof data.message === 'string' ? JSON.parse(data.message) : data.message;
+                const groqAnalysis = messageData.groq_analysis;
+
+                notification.innerHTML = `
+                    <div class="custom-notification-header">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3 class="custom-notification-title">${data.title}</h3>
+                        <button class="custom-notification-close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="custom-notification-content">
+                        ${messageData.local_check.message}<br>
+                        ${groqAnalysis ? formatGroqAnalysis(groqAnalysis) : ''}
+                        <div class="notification-footer">
+                            <small>Click for more details</small>
+                        </div>
+                    </div>
+                `;
+
+                // Make entire notification clickable
+                notification.addEventListener('click', (e) => {
+                    if (!e.target.closest('.custom-notification-close')) {
+                        ipcRenderer.send('show-details', data.details);
+                    }
+                });
+
+            } catch (e) {
+                notification.innerHTML = `
+                    <div class="custom-notification-header">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3 class="custom-notification-title">${data.title}</h3>
+                        <button class="custom-notification-close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="custom-notification-content">
+                        ${data.message}
+                    </div>
+                `;
+            }
+
+            container.appendChild(notification);
+
+            // Auto-close after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out forwards';
+                setTimeout(() => {
+                    notification.remove();
+                    // Check if container is empty and remove it
+                    if (container.children.length === 0) {
+                        container.remove();
+                        ipcRenderer.send('notification-closed');
+                    }
+                }, 300);
+            }, 5000);
+
+            // Handle close button
+            const closeBtn = notification.querySelector('.custom-notification-close');
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notification.style.animation = 'slideOut 0.3s ease-out forwards';
+                setTimeout(() => {
+                    notification.remove();
+                    // Check if container is empty and remove it
+                    if (container.children.length === 0) {
+                        container.remove();
+                        ipcRenderer.send('notification-closed');
+                    }
+                }, 300);
+            });
+        });
+    </script>
+</body>
+
+</html>

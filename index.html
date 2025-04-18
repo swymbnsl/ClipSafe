@@ -1,97 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ClipSafe</title>
-    <link rel="stylesheet" href="styles.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-  </head>
-  <body>
-    <div class="app-container">
-      <header class="app-header">
-        <div class="logo">
-          <i class="fas fa-shield-alt"></i>
-          <h1>ClipSafe</h1>
-        </div>
-        <div class="status-indicator">
-          <span id="status-dot" class="status-dot active"></span>
-          <span id="status-text">Monitoring Active</span>
-        </div>
-      </header>
 
-      <main class="app-content">
-        <div class="tabs">
-          <button class="tab-btn active" data-tab="activity">Activity</button>
-          <button class="tab-btn" data-tab="settings">Settings</button>
-        </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClipSafe</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
 
-        <div class="tab-content">
-          <!-- Activity Tab -->
-          <div id="activity" class="tab-pane active">
-            <div class="activity-header">
-              <h2>Recent Activity</h2>
-              <button id="clear-logs" class="btn-secondary">
-                <i class="fas fa-trash"></i> Clear Logs
-              </button>
-            </div>
-            <div id="logs-container" class="logs-container">
-              <ul id="activity-list" class="activity-list"></ul>
-            </div>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="logo">
+        <i class="fas fa-shield-alt"></i>
+        <h1>ClipSafe</h1>
+      </div>
+      <div class="status-indicator">
+        <span id="status-dot" class="status-dot active"></span>
+        <span id="status-text">Monitoring Active</span>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="activity">Activity</button>
+        <button class="tab-btn" data-tab="settings">Settings</button>
+      </div>
+
+      <div class="tab-content">
+        <!-- Activity Tab -->
+        <div id="activity" class="tab-pane active">
+          <div class="activity-header">
+            <h2>Recent Activity</h2>
+            <button id="clear-logs" class="btn-secondary">
+              <i class="fas fa-trash"></i> Clear Logs
+            </button>
           </div>
+          <div id="logs-container" class="logs-container">
+            <ul id="activity-list" class="activity-list"></ul>
+          </div>
+        </div>
 
-          <!-- Settings Tab -->
-          <div id="settings" class="tab-pane">
-            <div class="settings-container">
-              <div class="setting-group">
-                <h3><i class="fas fa-sliders"></i> Application Settings</h3>
-                <div class="setting-item">
-                  <label>
-                    <input type="checkbox" id="start-minimized" />
-                    <span>Start Minimized</span>
-                  </label>
-                  <div class="description">
-                    Launch ClipSafe in the system tray when Windows starts
-                  </div>
-                </div>
-                <div class="setting-item">
-                  <label>
-                    <input type="checkbox" id="start-monitoring" />
-                    <span>Start Monitoring on Launch</span>
-                  </label>
-                  <div class="description">
-                    Automatically start clipboard monitoring when the app
-                    launches
-                  </div>
-                </div>
-                <div class="setting-item">
-                  <label>
-                    <input type="checkbox" id="show-notifications" checked />
-                    <span>Show Notifications</span>
-                  </label>
-                  <div class="description">
-                    Display toast notifications for clipboard events and
-                    warnings
-                  </div>
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-pane">
+          <div class="settings-container">
+            <div class="setting-group">
+              <h3><i class="fas fa-sliders"></i> Application Settings</h3>
+              <div class="setting-item">
+                <label>
+                  <input type="checkbox" id="start-minimized" />
+                  <span>Start Minimized</span>
+                </label>
+                <div class="description">
+                  Launch ClipSafe in the system tray when Windows starts
                 </div>
               </div>
-
-              <button id="save-settings" class="btn-primary">
-                <i class="fas fa-save"></i> Save Settings
-              </button>
+              <div class="setting-item">
+                <label>
+                  <input type="checkbox" id="start-monitoring" />
+                  <span>Start Monitoring on Launch</span>
+                </label>
+                <div class="description">
+                  Automatically start clipboard monitoring when the app
+                  launches
+                </div>
+              </div>
+              <div class="setting-item">
+                <label>
+                  <input type="checkbox" id="show-notifications" checked />
+                  <span>Show Notifications</span>
+                </label>
+                <div class="description">
+                  Display toast notifications for clipboard events and
+                  warnings
+                </div>
+              </div>
             </div>
+
+            <button id="save-settings" class="btn-primary">
+              <i class="fas fa-save"></i> Save Settings
+            </button>
           </div>
         </div>
-      </main>
+      </div>
+    </main>
 
-      <footer class="app-footer">
-        <p>ClipSafe &copy; 2023 | Protecting your clipboard</p>
-      </footer>
-    </div>
+    <footer class="app-footer">
+      <p>ClipSafe &copy; 2025 | Protecting your clipboard</p>
+    </footer>
+  </div>
 
-    <script src="renderer.js"></script>
-  </body>
+  <script src="renderer.js"></script>
+</body>
+
 </html>

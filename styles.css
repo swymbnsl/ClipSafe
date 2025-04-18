@@ -324,6 +324,8 @@ body {
   color: var(--text-light);
   font-size: 14px;
   margin-bottom: 8px;
+  white-space: pre-line;
+  line-height: 1.5;
 }
 
 .activity-time {
@@ -368,6 +370,32 @@ body {
   font-family: monospace;
   white-space: pre-wrap;
   word-break: break-all;
+}
+
+.log-section {
+  margin-bottom: 12px;
+  padding: 12px;
+  background: var(--bg-color);
+  border-radius: var(--radius-sm);
+}
+
+.log-section.content-preview {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.log-section.content-preview pre {
+  margin: 8px 0;
+  padding: 8px;
+  background: white;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: monospace;
+}
+
+.log-section strong {
+  color: var(--text-color);
+  display: block;
+  margin-bottom: 8px;
 }
 
 /* Settings Tab */
@@ -765,6 +793,106 @@ body {
     transform: translateX(100%);
     opacity: 0;
   }
+}
+
+/* Custom Notification */
+.custom-notification {
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+  width: 500px;  /* Increased from 400px */
+  max-height: 600px; /* Increased from 400px */
+  overflow-y: auto;
+  border-left: 4px solid var(--primary-color);
+  animation: slideIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  margin-bottom: 12px;
+  -webkit-app-region: no-drag;
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.95);
+  opacity: 0;
+  transform: translateX(100%);
+  font-size: 15px; /* Slightly larger font */
+  line-height: 1.5;
+}
+
+.custom-notification.success {
+  border-left-color: var(--success-color);
+}
+
+.custom-notification.warning {
+  border-left-color: var(--warning-color);
+}
+
+.custom-notification.danger {
+  border-left-color: var(--danger-color);
+}
+
+.custom-notification-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.custom-notification-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.custom-notification-title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.custom-notification-close {
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--text-light);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.custom-notification-message {
+  color: var(--text-light);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.custom-notification-content {
+  padding: 12px 16px;
+}
+
+.notification-section {
+  margin-bottom: 12px;
+}
+
+.notification-section h4 {
+  font-size: 14px;
+  margin: 0 0 4px 0;
+  color: var(--text-color);
+}
+
+.analysis-details {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+}
+
+.analysis-details li {
+  margin-bottom: 4px;
+}
+
+.analysis-details li.threat {
+  color: var(--danger-color);
+  font-weight: 500;
 }
 
 /* Footer */
