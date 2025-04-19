@@ -190,12 +190,12 @@ function createNotificationWindow(callback) {
   }
 
   notificationWindow = new BrowserWindow({
-    width: 500, // Increased from 380
-    height: 0,
+    width: 380, // Increased from 380
+    height: 100,
     frame: false,
     skipTaskbar: true,
     alwaysOnTop: true,
-    transparent: true,
+    transparent: false,
     focusable: false,
     show: false, // Start hidden
     webPreferences: {

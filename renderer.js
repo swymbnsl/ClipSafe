@@ -15,6 +15,21 @@ let stats = {
   warning: 0,
   blocked: 0,
 }
+let monitorStart = Date.now()
+
+function updateStatsUI() {
+  document.getElementById('safe-count').textContent = stats.safe
+  document.getElementById('warning-count').textContent = stats.warning
+  document.getElementById('blocked-count').textContent = stats.blocked
+}
+function updateMonitorTime() {
+  const ms = Date.now() - monitorStart
+  const min = Math.floor(ms / 60000)
+  const hr = Math.floor(min / 60)
+  document.getElementById('monitor-time').textContent = hr > 0 ? `${hr}h ${min % 60}m` : `${min}m`
+}
+setInterval(updateMonitorTime, 10000)
+updateMonitorTime()
 
 // Create toast container
 const toastContainer = document.createElement("div")
@@ -212,8 +227,11 @@ function addActivityItem(data) {
     activityList.removeChild(activityList.lastChild)
   }
 
-  // Update stats
-  updateStats(type)
+  // Update stats based on severity
+  if (data.severity === 'info') stats.safe++
+  else if (data.severity === 'warning') stats.warning++
+  else if (data.severity === 'danger') stats.blocked++
+  updateStatsUI()
 }
 
 // Update Stats
@@ -229,6 +247,9 @@ function updateStats(type) {
       stats.blocked++
       break
   }
+  document.getElementById('safe-count').textContent = stats.safe
+  document.getElementById('warning-count').textContent = stats.warning
+  document.getElementById('blocked-count').textContent = stats.blocked
 }
 
 // Listen for notifications from main process
@@ -238,6 +259,7 @@ window.api.onNotification((data) => {
     type: data.type,
     title: data.title,
     message: data.message,
+    severity: data.type === 'success' ? 'info' : data.type
   })
 })
 
@@ -287,22 +309,25 @@ window.api.onNotification((data) => {
     type: data.type,
     title: data.title,
     message: data.message,
+    severity: data.type === 'success' ? 'info' : data.type
   })
 })
 
-// Listen for logs from main process
+// Listen for logs from main process (fixed to use addActivityItem)
 window.api.onLog((data) => {
-  addLogEntry({
-    time: new Date().toLocaleTimeString(),
+  addActivityItem({
+    type: 'info', // Default type for logs
+    title: 'Log Entry',
     message: data.message,
+    severity: 'info'
   })
 })
 
 // Listen for show logs request
 window.api.onShowLogs(() => {
-  // Switch to logs tab
+  // Switch to activity tab
   tabButtons.forEach((btn) => {
-    if (btn.getAttribute("data-tab") === "logs") {
+    if (btn.getAttribute("data-tab") === "activity") {
       btn.click()
     }
   })
@@ -328,6 +353,34 @@ window.api.onLogDetails((details) => {
   });
 })
 
+// Theme Toggle
+const themeToggle = document.getElementById('theme-toggle')
+const themeIcon = themeToggle.querySelector('i')
+
+// Detect initial theme (optional: can use system preference)
+let isDarkTheme = !document.documentElement.classList.contains('light-theme')
+
+themeToggle.addEventListener('click', () => {
+  isDarkTheme = !isDarkTheme
+  document.documentElement.classList.toggle('light-theme', !isDarkTheme)
+  themeIcon.className = isDarkTheme ? 'fas fa-moon' : 'fas fa-sun'
+})
+
+// Update monitoring time
+let startTime = Date.now()
+setInterval(() => {
+  const hours = Math.floor((Date.now() - startTime) / 3600000)
+  document.getElementById('monitor-time').textContent = `${hours}h`
+}, 60000)
+
+// Monitor status indicator
+const monitorStatus = document.getElementById('monitor-status')
+window.api.onMonitoringStatus((isActive) => {
+  monitorStatus.classList.toggle('inactive', !isActive)
+  monitorStatus.querySelector('span:last-child').textContent = 
+    isActive ? 'Monitoring' : 'Inactive'
+})
+
 // Initialize
 document.addEventListener("DOMContentLoaded", async () => {
   try {
@@ -351,4 +404,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       "warning"
     )
   }
+  // On load, initialize stats UI
+  updateStatsUI()
 })

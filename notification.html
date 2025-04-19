@@ -3,6 +3,7 @@
 
 <head>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="notification.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -13,9 +14,14 @@
         }
 
         #notification-container {
+            padding: 0px;
+            /* position: fixed; */
+            top: 0;
+            right: 0;
+            width: 300px;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
-            gap: 8px;
         }
     </style>
 </head>
@@ -28,10 +34,6 @@
         function formatGroqAnalysis(groq) {
             return `
                 <div class="groq-analysis">
-                    <div class="analysis-header">
-                        <i class="fas fa-robot"></i>
-                        <span>AI Analysis (${(groq.confidence * 100).toFixed()}% confidence)</span>
-                    </div>
                     <div class="analysis-content">
                         <p>${groq.explanation}</p>
                         ${groq.potential_threat !== 'None identified' ?
@@ -59,8 +61,7 @@
                         </button>
                     </div>
                     <div class="custom-notification-content">
-                        ${messageData.local_check.message}<br>
-                        ${groqAnalysis ? formatGroqAnalysis(groqAnalysis) : ''}
+                        ${groqAnalysis ? formatGroqAnalysis(groqAnalysis) : '<p>' + (messageData.text || data.message) + '</p>'}
                         <div class="notification-footer">
                             <small>Click for more details</small>
                         </div>
@@ -75,6 +76,7 @@
                 });
 
             } catch (e) {
+                console.error('Error parsing notification message:', e);
                 notification.innerHTML = `
                     <div class="custom-notification-header">
                         <i class="fas fa-shield-alt"></i>
@@ -84,21 +86,22 @@
                         </button>
                     </div>
                     <div class="custom-notification-content">
-                        ${data.message}
+                        <p>${data.message}</p>
+                        <div class="notification-footer">
+                            <small>Click for more details</small>
+                        </div>
                     </div>
                 `;
             }
 
             container.appendChild(notification);
 
-            // Auto-close after 3 seconds
+            // Auto-close after 5 seconds
             setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease-out forwards';
+                notification.style.animation = 'slideOutNotification 0.3s ease-out forwards';
                 setTimeout(() => {
                     notification.remove();
-                    // Check if container is empty and remove it
                     if (container.children.length === 0) {
-                        container.remove();
                         ipcRenderer.send('notification-closed');
                     }
                 }, 300);
@@ -108,12 +111,10 @@
             const closeBtn = notification.querySelector('.custom-notification-close');
             closeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                notification.style.animation = 'slideOut 0.3s ease-out forwards';
+                notification.style.animation = 'slideOutNotification 0.3s ease-out forwards';
                 setTimeout(() => {
                     notification.remove();
-                    // Check if container is empty and remove it
                     if (container.children.length === 0) {
-                        container.remove();
                         ipcRenderer.send('notification-closed');
                     }
                 }, 300);

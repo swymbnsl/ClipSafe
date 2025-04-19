@@ -12,29 +12,63 @@
 <body>
   <div class="app-container">
     <header class="app-header">
-      <div class="logo">
+      <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+        <i class="fas fa-moon"></i>
+      </button>
+      <h1 class="app-title">
         <i class="fas fa-shield-alt"></i>
-        <h1>ClipSafe</h1>
-      </div>
-      <div class="status-indicator">
-        <span id="status-dot" class="status-dot active"></span>
-        <span id="status-text">Monitoring Active</span>
-      </div>
+        ClipSafe
+      </h1>
     </header>
 
-    <main class="app-content">
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="activity">Activity</button>
-        <button class="tab-btn" data-tab="settings">Settings</button>
+    <main>
+      <!-- Stats Overview -->
+      <div class="stats-container">
+        <div class="stat-card">
+          <h3><i class="fas fa-shield-check"></i>Safe Content</h3>
+          <div class="value" id="safe-count">0</div>
+          <div class="stat-label">Total safe clipboard events</div>
+        </div>
+        <div class="stat-card">
+          <h3><i class="fas fa-exclamation-triangle"></i>Warnings</h3>
+          <div class="value" id="warning-count">0</div>
+          <div class="stat-label">Potentially unsafe events</div>
+        </div>
+        <div class="stat-card">
+          <h3><i class="fas fa-ban"></i>Blocked</h3>
+          <div class="value" id="blocked-count">0</div>
+          <div class="stat-label">Blocked clipboard actions</div>
+        </div>
+        <div class="stat-card">
+          <h3><i class="fas fa-clock"></i>Monitoring Time</h3>
+          <div class="value" id="monitor-time">0m</div>
+          <div class="stat-label">Since app launch</div>
+        </div>
+      </div>
+
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="activity">
+          <i class="fas fa-chart-line"></i>
+          Activity
+        </button>
+        <button class="tab-btn" data-tab="settings">
+          <i class="fas fa-cog"></i>
+          Settings
+        </button>
       </div>
 
       <div class="tab-content">
         <!-- Activity Tab -->
         <div id="activity" class="tab-pane active">
           <div class="activity-header">
-            <h2>Recent Activity</h2>
+            <h2><i class="fas fa-history"></i> Recent Activity</h2>
+            <div class="status-indicator" id="monitor-status">
+              <span class="dot"></span>
+              <span>Monitoring</span>
+            </div>
             <button id="clear-logs" class="btn-secondary">
-              <i class="fas fa-trash"></i> Clear Logs
+              <i class="fas fa-trash"></i>
+              Clear Logs
             </button>
           </div>
           <div id="logs-container" class="logs-container">
@@ -46,7 +80,7 @@
         <div id="settings" class="tab-pane">
           <div class="settings-container">
             <div class="setting-group">
-              <h3><i class="fas fa-sliders"></i> Application Settings</h3>
+              <h3><i class="fas fa-sliders-h"></i> Application Settings</h3>
               <div class="setting-item">
                 <label>
                   <input type="checkbox" id="start-minimized" />
@@ -87,7 +121,7 @@
     </main>
 
     <footer class="app-footer">
-      <p>ClipSafe &copy; 2025 | Protecting your clipboard</p>
+      <p>ClipSafe &copy; 2025 | <i class="fas fa-shield-alt"></i> Protecting your clipboard</p>
     </footer>
   </div>
 
