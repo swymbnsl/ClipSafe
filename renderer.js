@@ -164,29 +164,26 @@ function addActivityItem(data) {
   activityItem.className = "activity-item"
 
   try {
+    // Handle structured log messages
     const msgData = typeof data.message === 'string' ? JSON.parse(data.message) : data.message
-    const type = msgData.local_check?.is_safe === false || msgData.groq_analysis?.is_safe === false ? 'warning' : 'success'
-    const iconClass = type === 'warning' ? 'fa-exclamation-triangle' : 'fa-check-circle'
+    const type = data.type === 'log' ? (msgData.severity || 'info') : data.type
+    const iconClass = type === 'warning' ? 'fa-exclamation-triangle' : 
+                     type === 'danger' ? 'fa-ban' : 'fa-check-circle'
     
     let content = `<div class="log-section content-preview">
       <strong>Copied Content:</strong><br>
-      <pre>${msgData.details?.content_preview || 'N/A'}</pre>
+      <pre>${msgData.content || msgData.content_preview || 'N/A'}</pre>
     </div>`
-
-    if (msgData.local_check) {
-      content += `<div class="log-section">
-        <strong>Local Check:</strong> ${msgData.local_check.message}
-      </div>`
-    }
 
     if (msgData.groq_analysis) {
       const groq = msgData.groq_analysis
       content += `<div class="log-section">
         <strong>AI Analysis:</strong><br>
-        • Category: ${groq.category}<br>
-        • Confidence: ${(groq.confidence * 100).toFixed(1)}%<br>
-        • Assessment: ${groq.explanation}<br>
-        ${groq.potential_threat !== 'None identified' ? `• <span class="threat">Threat: ${groq.potential_threat}</span>` : ''}
+        • Category: ${groq.category || 'N/A'}<br>
+        • Confidence: ${groq.confidence ? (groq.confidence * 100).toFixed(1) + '%' : 'N/A'}<br>
+        • Assessment: ${groq.explanation || 'N/A'}<br>
+        ${groq.potential_threat && groq.potential_threat !== 'None identified' ? 
+          `• <span class="threat">Threat: ${groq.potential_threat}</span>` : ''}
       </div>`
     }
 
@@ -195,43 +192,48 @@ function addActivityItem(data) {
         <i class="fas ${iconClass}"></i>
       </div>
       <div class="activity-content">
-        <div class="activity-title">${data.title}</div>
+        <div class="activity-title">${data.title || 'Activity Log'}</div>
         <div class="activity-message">${content}</div>
-        <div class="activity-time">${new Date().toLocaleTimeString([], {
+        <div class="activity-time">${msgData.timestamp || new Date().toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,
         })}</div>
       </div>`
+
+    // Insert at the beginning of the list
+    if (activityList.firstChild) {
+      activityList.insertBefore(activityItem, activityList.firstChild)
+    } else {
+      activityList.appendChild(activityItem)
+    }
+
+    // Keep only last 50 items
+    while (activityList.children.length > 50) {
+      activityList.removeChild(activityList.lastChild)
+    }
+
+    // Update stats based on severity
+    updateStats(type)
+    
   } catch (e) {
+    console.error('Error adding activity item:', e)
     // Fallback for unparseable messages
     activityItem.innerHTML = `
-      <div class="activity-icon ${data.type || 'info'}">
-        <i class="fas ${iconClass}"></i>
+      <div class="activity-icon info">
+        <i class="fas fa-info-circle"></i>
       </div>
       <div class="activity-content">
-        <div class="activity-title">${data.title || 'Log Entry'}</div>
-        <div class="activity-message">${data.message}</div>
+        <div class="activity-title">Log Entry</div>
+        <div class="activity-message">${data.message || 'No message available'}</div>
         <div class="activity-time">${new Date().toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,
         })}</div>
       </div>`
+    activityList.insertBefore(activityItem, activityList.firstChild)
   }
-
-  activityList.insertBefore(activityItem, activityList.firstChild)
-
-  // Keep only last 50 items for performance
-  if (activityList.children.length > 50) {
-    activityList.removeChild(activityList.lastChild)
-  }
-
-  // Update stats based on severity
-  if (data.severity === 'info') stats.safe++
-  else if (data.severity === 'warning') stats.warning++
-  else if (data.severity === 'danger') stats.blocked++
-  updateStatsUI()
 }
 
 // Update Stats
@@ -254,25 +256,22 @@ function updateStats(type) {
 
 // Listen for notifications from main process
 window.api.onNotification((data) => {
-  // Only add to activity list, skip toast notifications
-  addActivityItem({
-    type: data.type,
-    title: data.title,
-    message: data.message,
-    severity: data.type === 'success' ? 'info' : data.type
-  })
-})
-
-// Handle custom notifications
-window.api.onNotification((data) => {
   if (showNotificationsCheckbox.checked) {
-    const notification = document.createElement('div')
-    notification.className = `custom-notification ${data.type}`
+    // Get or create notification container
+    let notificationContainer = document.getElementById('notification-container');
+    if (!notificationContainer) {
+      notificationContainer = document.createElement('div');
+      notificationContainer.id = 'notification-container';
+      document.body.appendChild(notificationContainer);
+    }
+
+    const notification = document.createElement('div');
+    notification.className = `custom-notification ${data.type}`;
     
     const iconClass = data.type === 'success' ? 'fa-check-circle' :
                       data.type === 'warning' ? 'fa-exclamation-triangle' :
-                      data.type === 'danger' ? 'fa-ban' : 'fa-info-circle'
-    
+                      data.type === 'danger' ? 'fa-ban' : 'fa-info-circle';
+
     notification.innerHTML = `
       <div class="custom-notification-header">
         <i class="fas ${iconClass} custom-notification-icon"></i>
@@ -281,26 +280,34 @@ window.api.onNotification((data) => {
           <i class="fas fa-times"></i>
         </button>
       </div>
-      <p class="custom-notification-message">${data.message}</p>
-    `
+      <div class="custom-notification-content">
+        <p class="custom-notification-message">${data.message}</p>
+      </div>
+    `;
 
-    document.body.appendChild(notification)
+    notificationContainer.appendChild(notification);
 
-    // Add click handler for close button
-    const closeBtn = notification.querySelector('.custom-notification-close')
+    // Remove older notifications if more than 3
+    const notifications = notificationContainer.querySelectorAll('.custom-notification');
+    if (notifications.length > 3) {
+      notifications[0].remove();
+    }
+
+    // Handle close button
+    const closeBtn = notification.querySelector('.custom-notification-close');
     closeBtn.addEventListener('click', () => {
-      notification.style.animation = 'slideOut 0.3s ease-out forwards'
-      setTimeout(() => notification.remove(), 300)
-    })
+      notification.style.animation = 'slideOutNotification 0.3s ease-out forwards';
+      setTimeout(() => notification.remove(), 300);
+    });
 
     // Auto remove after 5 seconds for success messages
     if (data.type === 'success') {
       setTimeout(() => {
         if (notification.parentElement) {
-          notification.style.animation = 'slideOut 0.3s ease-out forwards'
-          setTimeout(() => notification.remove(), 300)
+          notification.style.animation = 'slideOutNotification 0.3s ease-out forwards';
+          setTimeout(() => notification.remove(), 300);
         }
-      }, 5000)
+      }, 5000);
     }
   }
 
@@ -310,8 +317,27 @@ window.api.onNotification((data) => {
     title: data.title,
     message: data.message,
     severity: data.type === 'success' ? 'info' : data.type
-  })
-})
+  });
+});
+
+// Add domain analysis result handler
+window.api.onDomainAnalysis((result) => {
+  const notification = document.querySelector('.custom-notification');
+  if (notification) {
+    const messageEl = notification.querySelector('.custom-notification-message');
+    const loadingEl = notification.querySelector('.loading-indicator');
+    if (messageEl && loadingEl) {
+      messageEl.textContent = result.explanation;
+      loadingEl.remove();
+      
+      // Add safety indicator
+      const safetyIndicator = document.createElement('div');
+      safetyIndicator.className = `safety-indicator ${result.is_safe ? 'safe' : 'unsafe'}`;
+      safetyIndicator.textContent = result.is_safe ? 'Safe' : 'Unsafe';
+      notification.querySelector('.custom-notification-content').appendChild(safetyIndicator);
+    }
+  }
+});
 
 // Listen for logs from main process (fixed to use addActivityItem)
 window.api.onLog((data) => {
@@ -374,7 +400,21 @@ setInterval(() => {
 }, 60000)
 
 // Monitor status indicator
-const monitorStatus = document.getElementById('monitor-status')
+const monitorStatus = document.getElementById('monitor-status');
+let isMonitoring = true;
+
+monitorStatus.addEventListener('click', () => {
+  window.api.toggleMonitoring();
+});
+
+// Handle monitoring state changes
+window.api.onMonitoringStateChange((isActive) => {
+  isMonitoring = isActive;
+  monitorStatus.classList.toggle('inactive', !isActive);
+  monitorStatus.querySelector('span:last-child').textContent = 
+    isActive ? 'Monitoring' : 'Not Monitoring';
+});
+
 window.api.onMonitoringStatus((isActive) => {
   monitorStatus.classList.toggle('inactive', !isActive)
   monitorStatus.querySelector('span:last-child').textContent = 

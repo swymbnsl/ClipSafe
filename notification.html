@@ -2,26 +2,94 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="notification.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        html,
         body {
+            height: 100%;
             margin: 0;
             padding: 0;
+            background: transparent !important;
             overflow: hidden;
-            background: transparent;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent !important;
         }
 
         #notification-container {
-            padding: 0px;
-            /* position: fixed; */
-            top: 0;
-            right: 0;
-            width: 300px;
-            z-index: 9999;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            background: transparent;
+        }
+
+        .popup-notification {
+            background: var(--card-bg, #25262b);
+            color: var(--text-color, #e4e5e7);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-color, #2c2e33);
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+            pointer-events: auto;
+        }
+
+        .popup-header {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .popup-header .popup-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+            flex: 1;
+        }
+
+        .popup-header .popup-close {
+            background: none;
+            border: none;
+            color: var(--text-light, #9da1a6);
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+        .popup-header .popup-close:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-color, #e4e5e7);
+        }
+
+        .popup-content {
+            padding: 0.75rem 1rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .popup-content p {
+            margin: 0;
+            word-break: break-word;
+        }
+
+        .notification-footer {
+            text-align: right;
+            padding: 0.5rem 1rem;
+            color: var(--text-light, #9da1a6);
+            font-size: 0.85em;
         }
     </style>
 </head>
@@ -45,79 +113,75 @@
 
         ipcRenderer.on('show-notification', (event, data) => {
             const container = document.getElementById('notification-container');
-            const notification = document.createElement('div');
-            notification.className = `custom-notification ${data.type}`;
+            // Remove any previous notification
+            container.innerHTML = '';
+
+            const popup = document.createElement('div');
+            popup.className = `popup-notification ${data.type}`;
 
             try {
                 const messageData = typeof data.message === 'string' ? JSON.parse(data.message) : data.message;
                 const groqAnalysis = messageData.groq_analysis;
 
-                notification.innerHTML = `
-                    <div class="custom-notification-header">
+                popup.innerHTML = `
+                    <div class="popup-header">
                         <i class="fas fa-shield-alt"></i>
-                        <h3 class="custom-notification-title">${data.title}</h3>
-                        <button class="custom-notification-close">
+                        <span class="popup-title">${data.title}</span>
+                        <button class="popup-close" title="Close">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                    <div class="custom-notification-content">
+                    <div class="popup-content">
                         ${groqAnalysis ? formatGroqAnalysis(groqAnalysis) : '<p>' + (messageData.text || data.message) + '</p>'}
-                        <div class="notification-footer">
-                            <small>Click for more details</small>
-                        </div>
+                    </div>
+                    <div class="notification-footer">
+                        <small>Click for more details</small>
                     </div>
                 `;
 
-                // Make entire notification clickable
-                notification.addEventListener('click', (e) => {
-                    if (!e.target.closest('.custom-notification-close')) {
+                // Make entire popup clickable except close button
+                popup.addEventListener('click', (e) => {
+                    if (!e.target.closest('.popup-close')) {
                         ipcRenderer.send('show-details', data.details);
                     }
                 });
 
             } catch (e) {
-                console.error('Error parsing notification message:', e);
-                notification.innerHTML = `
-                    <div class="custom-notification-header">
+                popup.innerHTML = `
+                    <div class="popup-header">
                         <i class="fas fa-shield-alt"></i>
-                        <h3 class="custom-notification-title">${data.title}</h3>
-                        <button class="custom-notification-close">
+                        <span class="popup-title">${data.title}</span>
+                        <button class="popup-close" title="Close">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                    <div class="custom-notification-content">
+                    <div class="popup-content">
                         <p>${data.message}</p>
-                        <div class="notification-footer">
-                            <small>Click for more details</small>
-                        </div>
+                    </div>
+                    <div class="notification-footer">
+                        <small>Click for more details</small>
                     </div>
                 `;
             }
 
-            container.appendChild(notification);
+            container.appendChild(popup);
 
             // Auto-close after 5 seconds
             setTimeout(() => {
-                notification.style.animation = 'slideOutNotification 0.3s ease-out forwards';
+                popup.style.animation = 'slideOutNotification 0.3s ease-out forwards';
                 setTimeout(() => {
-                    notification.remove();
-                    if (container.children.length === 0) {
-                        ipcRenderer.send('notification-closed');
-                    }
+                    popup.remove();
+                    ipcRenderer.send('notification-closed');
                 }, 300);
-            }, 5000);
+            }, 10000);
 
             // Handle close button
-            const closeBtn = notification.querySelector('.custom-notification-close');
+            const closeBtn = popup.querySelector('.popup-close');
             closeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                notification.style.animation = 'slideOutNotification 0.3s ease-out forwards';
-                setTimeout(() => {
-                    notification.remove();
-                    if (container.children.length === 0) {
-                        ipcRenderer.send('notification-closed');
-                    }
-                }, 300);
+                // Immediately send the close message to main process
+                ipcRenderer.send('notification-closed');
+                // No animation or setTimeout needed - let the main process handle closing
             });
         });
     </script>

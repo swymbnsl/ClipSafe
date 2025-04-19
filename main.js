@@ -22,6 +22,7 @@ let mainWindow
 let tray = null
 let pythonProcess = null
 let notificationWindow = null;
+let isMonitoring = true;
 
 // Create the main window
 function createWindow() {
@@ -111,7 +112,7 @@ function createTray() {
 
 // Start Python process
 function startPythonProcess() {
-  if (pythonProcess) {
+  if (pythonProcess || !isMonitoring) {
     return
   }
 
@@ -182,6 +183,8 @@ function stopPythonProcess() {
 }
 
 // Create notification window
+// Changes for main.js - in the createNotificationWindow function
+// Update this function in your main.js file
 function createNotificationWindow(callback) {
   // If window already exists, just show notification
   if (notificationWindow) {
@@ -190,14 +193,14 @@ function createNotificationWindow(callback) {
   }
 
   notificationWindow = new BrowserWindow({
-    width: 380, // Increased from 380
-    height: 100,
+    width: 400,
+    height: 120,
     frame: false,
     skipTaskbar: true,
     alwaysOnTop: true,
-    transparent: false,
+    transparent: true,
     focusable: false,
-    show: false, // Start hidden
+    show: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -211,23 +214,80 @@ function createNotificationWindow(callback) {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
     
+    // Position at bottom right with no extra spacing
     notificationWindow.setBounds({
-      width: 500, // Increased from 380
-      height: 200, // Increased from 100
-      x: width - 520, // Adjusted for new width
-      y: height - 220 // Adjusted for new height
+      width: 400,
+      height: 120,
+      x: width - 400,
+      y: height - 120
+    });
+    
+    // Ensure no additional padding is applied
+    notificationWindow.setContentBounds({
+      width: 400,
+      height: 120,
+      x: width - 400,
+      y: height - 120
     });
     
     notificationWindow.show();
     callback();
   });
 }
-
-// Handle notification window cleanup
-ipcMain.on('notification-closed', () => {
+// Handle monitoring toggle
+ipcMain.on("toggle-monitoring", () => {
+  isMonitoring = !isMonitoring;
+  
+  // Stop/start Python process based on monitoring state
+  if (!isMonitoring) {
+    stopPythonProcess();
+  } else {
+    startPythonProcess();
+  }
+  
+  // Notify renderer about state change
+  if (mainWindow) {
+    mainWindow.webContents.send("monitoring-state-changed", isMonitoring);
+  }
   if (notificationWindow) {
-    notificationWindow.close();
-    notificationWindow = null;
+    notificationWindow.webContents.send("monitoring-state-changed", isMonitoring);
+  }
+});
+
+// Add domain analysis handler
+ipcMain.on("analyze-domain", async (event, url) => {
+  try {
+    const response = await fetch("https://api.groq.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "compound-mini-beta",
+        messages: [
+          {
+            role: "system",
+            content: "You are a security analyst. Analyze the given URL for potential threats."
+          },
+          {
+            role: "user",
+            content: `Analyze this URL for safety: ${url}`
+          }
+        ],
+        temperature: 0.1
+      })
+    });
+    
+    const result = await response.json();
+    const analysis = {
+      is_safe: !result.choices[0].message.content.toLowerCase().includes("unsafe"),
+      explanation: result.choices[0].message.content
+    };
+    
+    mainWindow.webContents.send("domain-analysis-result", analysis);
+  } catch (error) {
+    console.error("Domain analysis error:", error);
   }
 });
 
@@ -277,6 +337,13 @@ ipcMain.on('show-details', (event, details) => {
   mainWindow.focus();
   // Switch to activity tab and scroll to relevant log
   mainWindow.webContents.send('show-log-details', details);
+});
+
+ipcMain.on('notification-closed', () => {
+  if (notificationWindow) {
+    notificationWindow.destroy(); // Use destroy() instead of close() for immediate effect
+    notificationWindow = null;
+  }
 });
 
 // Clean up on exit

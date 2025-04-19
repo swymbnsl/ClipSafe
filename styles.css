@@ -249,6 +249,7 @@ main {
   background: var(--card-bg);
   color: var(--text-color);
   border: 1px solid var(--border-color);
+  margin-left: 2%;
 }
 
 .btn-secondary:hover {
@@ -298,71 +299,75 @@ main {
 /* Toast Notifications */
 #notification-container {
   position: fixed;
-  bottom: 32px;
-  right: 32px;
-  z-index: 1100;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: none;
-  box-shadow: none;
-  padding: 0;
-  margin: 0;
-  width: auto;
+  gap: 10px;
+  max-width: 420px;
   pointer-events: none;
-  align-items: flex-end; /* Ensure notifications are right-aligned */
 }
 
 .custom-notification {
-  position: relative;
-  min-width: 320px;
-  max-width: 380px;
-  width: 100%;
-  margin: 0;
+  pointer-events: auto;
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   opacity: 0;
   transform: translateX(100%);
   animation: slideInNotification 0.3s ease forwards;
-  pointer-events: auto;
-  background: var(--card-bg);
-  border-radius: var(--radius-md);
-  padding: 0; /* Remove extra padding */
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-md);
   overflow: hidden;
+  width: 100%;
 }
 
 .custom-notification-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.custom-notification-title {
   margin: 0;
-  padding: 1rem 1rem 0.5rem 1rem;
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.custom-notification-content {
+  padding: 12px 16px;
+}
+
+.custom-notification-message {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .custom-notification-close {
-  margin-left: auto;
   background: none;
   border: none;
   color: var(--text-light);
   cursor: pointer;
-  padding: 4px;
-  border-radius: var(--radius-sm);
-  transition: var(--transition);
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
 }
 
 .custom-notification-close:hover {
-  color: var(--text-color);
   background: rgba(255, 255, 255, 0.1);
-}
-
-.custom-notification-content {
-  max-height: 200px;
-  overflow-y: auto;
-  margin: 0;
-  padding: 0 1rem 1rem 1rem;
+  color: var(--text-color);
 }
 
 @keyframes slideInNotification {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
   to {
     opacity: 1;
     transform: translateX(0);
@@ -483,6 +488,13 @@ main {
   background: var(--bg-color);
   border-radius: var(--radius-md);
   margin-left: auto;
+  cursor: pointer;
+  user-select: none;
+  transition: var(--transition);
+}
+
+.status-indicator:hover {
+  background: var(--card-bg);
 }
 
 .status-indicator .dot {
@@ -490,8 +502,9 @@ main {
   height: 8px;
   border-radius: 50%;
   background: var(--success-color);
+  transition: background-color 0.3s ease;
 }
 
 .status-indicator.inactive .dot {
-  background: var(--text-light);
+  background: var(--danger-color);
 }
