@@ -179,6 +179,56 @@ function stopPythonProcess() {
   }
 }
 
+// Create notification window
+function createNotificationWindow(callback) {
+  // If window already exists, just show notification
+  if (notificationWindow) {
+    callback();
+    return;
+  }
+
+  notificationWindow = new BrowserWindow({
+    width: 380, // Increased from 380
+    height: 100,
+    frame: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    transparent: false,
+    focusable: false,
+    show: false, // Start hidden
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  });
+
+  notificationWindow.loadFile('notification.html');
+  
+  notificationWindow.webContents.once('did-finish-load', () => {
+    const { screen } = require('electron');
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.workAreaSize;
+    
+    notificationWindow.setBounds({
+      width: 500, // Increased from 380
+      height: 200, // Increased from 100
+      x: width - 520, // Adjusted for new width
+      y: height - 220 // Adjusted for new height
+    });
+    
+    notificationWindow.show();
+    callback();
+  });
+}
+
+// Handle notification window cleanup
+ipcMain.on('notification-closed', () => {
+  if (notificationWindow) {
+    notificationWindow.close();
+    notificationWindow = null;
+  }
+});
+
 // App ready event
 app.whenReady().then(() => {
   createWindow()
