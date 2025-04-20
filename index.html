@@ -41,11 +41,7 @@
           <div class="value" id="warning-count">0</div>
           <div class="stat-label">Potentially unsafe events</div>
         </div>
-        <div class="stat-card">
-          <h3><i class="fas fa-ban"></i>Blocked</h3>
-          <div class="value" id="blocked-count">0</div>
-          <div class="stat-label">Blocked clipboard actions</div>
-        </div>
+
         <div class="stat-card">
           <h3><i class="fas fa-clock"></i>Monitoring Time</h3>
           <div class="value" id="monitor-time">0m</div>
@@ -57,6 +53,10 @@
         <button class="tab-btn active" data-tab="activity" role="tab" aria-selected="true" aria-controls="activity">
           <i class="fas fa-chart-line"></i>
           Activity
+        </button>
+        <button class="tab-btn" data-tab="analysis" role="tab" aria-selected="false" aria-controls="analysis">
+          <i class="fas fa-chart-pie"></i>
+          Analysis
         </button>
         <button class="tab-btn" data-tab="settings" role="tab" aria-selected="false" aria-controls="settings">
           <i class="fas fa-cog"></i>
@@ -130,6 +130,36 @@
             </button>
           </div>
         </div>
+
+        <!-- Analysis Tab -->
+        <div id="analysis" class="tab-pane" role="tabpanel" aria-labelledby="analysis-tab">
+          <div class="analysis-container">
+            <div class="chart-section">
+              <h2><i class="fas fa-chart-pie"></i> Threat Distribution</h2>
+              <div class="chart-wrapper">
+                <canvas id="threatChart"></canvas>
+              </div>
+              <div class="chart-legend">
+                <div class="legend-item">
+                  <span class="legend-color code"></span>
+                  <span>Code Threats</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color command"></span>
+                  <span>Command Threats</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color url"></span>
+                  <span>URL Threats</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color other"></span>
+                  <span>Other Threats</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
 
@@ -142,6 +172,7 @@
   <div id="notification-container"></div>
 
   <script src="renderer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 
 </html>

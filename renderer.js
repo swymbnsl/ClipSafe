@@ -185,6 +185,80 @@ function showToast(title, message, type = "info", actions = null) {
   }
 }
 
+// Add after other constants
+let threatChart;
+const chartColors = {
+  code: '#FF6384',
+  command: '#36A2EB',
+  url: '#FFCE56',
+  other: '#4BC0C0'
+};
+
+// Initialize threat data
+let threatData = {
+  code: 0,
+  command: 0,
+  url: 0,
+  other: 0
+};
+
+function updateLegendCounts() {
+  document.querySelectorAll('.legend-item').forEach(item => {
+    const category = item.getAttribute('data-category');
+    const countSpan = item.querySelector('.threat-count');
+    if (countSpan && category) {
+      countSpan.textContent = `(${threatData[category]})`;
+    }
+  });
+}
+
+function initThreatChart() {
+  const ctx = document.getElementById('threatChart').getContext('2d');
+  threatChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Code', 'Command', 'URL', 'Other'],
+      datasets: [{
+        data: [0, 0, 0, 0],
+        backgroundColor: Object.values(chartColors),
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 2,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          padding: 12,
+          titleFont: {
+            size: 14,
+            weight: 'bold'
+          },
+          bodyFont: {
+            size: 13
+          }
+        }
+      },
+      cutout: '60%'
+    }
+  });
+}
+
+async function updateThreatChart(category) {
+  if (category && threatData.hasOwnProperty(category)) {
+    threatData[category]++;
+    threatChart.data.datasets[0].data = Object.values(threatData);
+    threatChart.update();
+    updateLegendCounts();
+  }
+}
+
 // Add Activity Item
 function addActivityItem(data) {
   const activityItem = document.createElement("div")
@@ -198,6 +272,12 @@ function addActivityItem(data) {
     // Update stats with the new data
     updateStats(type, msgData);
     
+    // Update threat chart if message contains groq analysis and is unsafe
+    if (msgData.groq_analysis && !msgData.groq_analysis.is_safe) {
+      const category = msgData.groq_analysis.category || 'other';
+      updateThreatChart(category.toLowerCase());
+    }
+
     const iconClass = type === 'warning' ? 'fa-exclamation-triangle' : 
                      type === 'danger' ? 'fa-ban' : 'fa-check-circle'
     
@@ -261,6 +341,34 @@ function addActivityItem(data) {
         })}</div>
       </div>`
     activityList.insertBefore(activityItem, activityList.firstChild)
+  }
+}
+
+// Add log parser function
+async function parseLogFile() {
+  try {
+    const response = await fetch('safety_scanner.log');
+    const logText = await response.text();
+    const logLines = logText.split('\n');
+    
+    for (const line of logLines) {
+      if (line.includes('"type": "log"')) {
+        try {
+          const jsonStart = line.indexOf('{"type"');
+          const jsonStr = line.substring(jsonStart);
+          const logData = JSON.parse(jsonStr);
+          
+          if (logData.message.groq_analysis && !logData.message.groq_analysis.is_safe) {
+            const category = logData.message.groq_analysis.category || 'other';
+            await updateThreatChart(category.toLowerCase());
+          }
+        } catch (e) {
+          console.error('Error parsing log line:', e);
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Error reading log file:', e);
   }
 }
 
@@ -412,4 +520,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   // On load, initialize stats UI
   updateStatsUI()
+
+  // Initialize threat chart and parse logs
+  initThreatChart();
+  await parseLogFile();
 })

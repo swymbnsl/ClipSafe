@@ -179,7 +179,7 @@ class ClipboardSafetyScanner:
                         Provide a JSON response with:
                         - is_safe: boolean
                         - confidence: number between 0 and 1
-                        - category: string (url, command, code, phishing, other)
+                        - category: string (url, command, code, other) among these 4 only
                         - explanation: brief explanation of your assessment
                         - potential_threat: description of the potential threat if not safe
                         """
