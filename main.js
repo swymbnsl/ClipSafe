@@ -194,7 +194,7 @@ function createNotificationWindow(callback) {
 
   notificationWindow = new BrowserWindow({
     width: 400,
-    height: 120,
+    height: 200,
     frame: false,
     skipTaskbar: true,
     alwaysOnTop: true,
@@ -217,17 +217,17 @@ function createNotificationWindow(callback) {
     // Position at bottom right with no extra spacing
     notificationWindow.setBounds({
       width: 400,
-      height: 120,
+      height: 200,
       x: width - 400,
-      y: height - 120
+      y: height - 200
     });
     
     // Ensure no additional padding is applied
     notificationWindow.setContentBounds({
       width: 400,
-      height: 120,
+      height: 200,
       x: width - 400,
-      y: height - 120
+      y: height - 200
     });
     
     notificationWindow.show();

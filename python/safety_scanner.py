@@ -65,6 +65,7 @@ class ClipboardSafetyScanner:
         """Main loop to monitor clipboard content"""
         logger.info("Clipboard safety scanner is now running.")
         last_content = ""
+        total_checks = 0
         
         try:
             while True:
@@ -72,6 +73,7 @@ class ClipboardSafetyScanner:
                 
                 # Check if clipboard content has changed
                 if current_clipboard != last_content:
+                    total_checks += 1
                     content_sample = current_clipboard[:100] + "..." if len(current_clipboard) > 100 else current_clipboard
                     logger.info(f"Clipboard content: {content_sample}")
                     
@@ -82,16 +84,26 @@ class ClipboardSafetyScanner:
                         # Parse the message to ensure proper JSON structure
                         msg_obj = json.loads(message)
                         
-                        # Format log message with better structure
+                        # Determine severity level
+                        severity = "info"
+                        if not is_safe:
+                            severity = "danger" if msg_obj.get("groq_analysis", {}).get("confidence", 0) > 0.8 else "warning"
+                        
+                        # Format log message with better structure and stats
                         log_message = {
                             "type": "log",
                             "message": {
                                 "content": content_sample,
                                 "local_check": msg_obj["local_check"],
                                 "groq_analysis": msg_obj.get("groq_analysis", {}),
-                                "timestamp": datetime.now().strftime("%I:%M %p")
+                                "timestamp": datetime.now().strftime("%I:%M %p"),
+                                "stats": {
+                                    "total_checks": total_checks,
+                                    "is_safe": is_safe,
+                                    "severity": severity
+                                }
                             },
-                            "severity": "warning" if not is_safe else "info"
+                            "severity": severity
                         }
                         
                         # Log to both file and stdout
@@ -99,23 +111,6 @@ class ClipboardSafetyScanner:
                         print(json.dumps(log_message))
                         sys.stdout.flush()
                         
-                        # Send notification if content is unsafe
-                        if not is_safe:
-                            notification_data = {
-                                "type": "notification",
-                                "title": "ClipSafe Alert",
-                                "message": msg_obj,
-                                "notification_type": "warning",
-                                "details": {
-                                    "content_preview": content_sample,
-                                    "timestamp": datetime.now().strftime("%I:%M %p"),
-                                    "local_check": msg_obj["local_check"],
-                                    "groq_analysis": msg_obj.get("groq_analysis", {})
-                                }
-                            }
-                            print(json.dumps(notification_data))
-                            sys.stdout.flush()
-                            
                     except json.JSONDecodeError:
                         logger.error(f"Failed to parse analysis result: {message}")
                     
@@ -168,7 +163,7 @@ class ClipboardSafetyScanner:
             content_to_analyze = content[:5000] if len(content) > 5000 else content
             
             data = {
-                "model": "compound-mini-beta",
+                "model": "compound-beta-mini",
                 "messages": [
                     {
                         "role": "system",
@@ -314,48 +309,69 @@ class ClipboardSafetyScanner:
         local_is_safe = True
         local_message = "Content appears safe (local check)"
         
-        # Check if content looks like a URL
+        # First do local checks 
         if re.match(r'^https?://\S+$', content):
             local_is_safe, local_message = self.check_url_safety(content)
-        # Check if content looks like a terminal command
         elif content.startswith(("$", "#")) or "/" in content or "\\" in content:
             local_is_safe, local_message = self.check_command_safety(content)
-        # Check if content looks like code
         elif any(keyword in content for keyword in ["import", "function", "def ", "class ", "var ", "let ", "const "]):
             local_is_safe, local_message = self.check_code_safety(content)
         else:
-            # Basic pattern matching for unknown content
             for pattern in (self.suspicious_command_patterns + self.suspicious_url_patterns + self.suspicious_code_patterns):
                 if re.search(pattern, content, re.IGNORECASE):
                     local_is_safe, local_message = False, f"Content contains suspicious pattern: {pattern}"
                     break
         
+        # Create initial message structure
+        initial_message = {
+            "local_check": {
+                "is_safe": local_is_safe,
+                "message": local_message
+            }
+        }
+
+        # Only do notifications after Groq analysis
         if self.groq_api_key:
             analysis = self.analyze_with_groq(content)
             if analysis and 'is_safe' in analysis:
                 groq_is_safe = analysis['is_safe']
-                groq_confidence = analysis.get('confidence', 0)
-                groq_category = analysis.get('category', 'unknown')
-                groq_explanation = analysis.get('explanation', 'No explanation provided')
-                potential_threat = analysis.get('potential_threat', 'None identified')
+                groq_confidence = analysis.get('confidence', 0) 
                 
+                # Only send notification if Groq identifies it as unsafe
+                if not groq_is_safe:
+                    notification_data = {
+                        "type": "notification",
+                        "title": "ClipSafe AI Analysis",
+                        "message": {
+                            "local_check": initial_message["local_check"],
+                            "groq_analysis": {
+                                "is_safe": groq_is_safe,
+                                "confidence": groq_confidence,
+                                "category": analysis.get('category', 'unknown'),
+                                "explanation": analysis.get('explanation', 'No explanation provided'),
+                                "potential_threat": analysis.get('potential_threat', 'None identified')
+                            }
+                        },
+                        "notification_type": "danger" if groq_confidence > 0.8 else "warning",
+                        "details": {
+                            "content_preview": content[:100] + "..." if len(content) > 100 else content,
+                            "timestamp": datetime.now().strftime("%I:%M %p"),
+                            "local_check": initial_message["local_check"],
+                            "groq_analysis": analysis
+                        }
+                    }
+                    print(json.dumps(notification_data))
+                    sys.stdout.flush()
+                
+                # Return combined results
                 is_safe = local_is_safe and groq_is_safe
                 message = {
-                    "local_check": {
-                        "is_safe": local_is_safe,
-                        "message": local_message
-                    },
-                    "groq_analysis": {
-                        "is_safe": groq_is_safe,
-                        "confidence": groq_confidence,
-                        "category": groq_category,
-                        "explanation": groq_explanation,
-                        "potential_threat": potential_threat
-                    }
+                    "local_check": initial_message["local_check"],
+                    "groq_analysis": analysis
                 }
                 return is_safe, json.dumps(message)
         
-        return local_is_safe, json.dumps({"local_check": {"is_safe": local_is_safe, "message": local_message}})
+        return local_is_safe, json.dumps(initial_message)
 
     def check_pasted_content(self):
         """Check the content that was just pasted"""

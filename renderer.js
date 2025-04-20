@@ -11,11 +11,38 @@ const saveSettingsBtn = document.getElementById("save-settings")
 
 // Stats
 let stats = {
+  total: 0,
   safe: 0,
   warning: 0,
   blocked: 0,
 }
 let monitorStart = Date.now()
+
+function updateStats(type, msgData) {
+  // Update total checks if available
+  if (msgData?.stats?.total_checks) {
+    stats.total = msgData.stats.total_checks;
+  }
+
+  // Update individual counters based on severity
+  switch (type) {
+    case "info":
+      stats.safe++;
+      break;
+    case "warning":
+      stats.warning++;
+      break;
+    case "danger":
+      stats.blocked++;
+      break;
+  }
+
+  // Update UI
+  document.getElementById('total-checks').textContent = stats.total;
+  document.getElementById('safe-count').textContent = stats.safe;
+  document.getElementById('warning-count').textContent = stats.warning;
+  document.getElementById('blocked-count').textContent = stats.blocked;
+}
 
 function updateStatsUI() {
   document.getElementById('safe-count').textContent = stats.safe
@@ -167,6 +194,10 @@ function addActivityItem(data) {
     // Handle structured log messages
     const msgData = typeof data.message === 'string' ? JSON.parse(data.message) : data.message
     const type = data.type === 'log' ? (msgData.severity || 'info') : data.type
+
+    // Update stats with the new data
+    updateStats(type, msgData);
+    
     const iconClass = type === 'warning' ? 'fa-exclamation-triangle' : 
                      type === 'danger' ? 'fa-ban' : 'fa-check-circle'
     
@@ -212,9 +243,6 @@ function addActivityItem(data) {
     while (activityList.children.length > 50) {
       activityList.removeChild(activityList.lastChild)
     }
-
-    // Update stats based on severity
-    updateStats(type)
     
   } catch (e) {
     console.error('Error adding activity item:', e)
@@ -236,82 +264,9 @@ function addActivityItem(data) {
   }
 }
 
-// Update Stats
-function updateStats(type) {
-  switch (type) {
-    case "success":
-      stats.safe++
-      break
-    case "warning":
-      stats.warning++
-      break
-    case "danger":
-      stats.blocked++
-      break
-  }
-  document.getElementById('safe-count').textContent = stats.safe
-  document.getElementById('warning-count').textContent = stats.warning
-  document.getElementById('blocked-count').textContent = stats.blocked
-}
-
 // Listen for notifications from main process
 window.api.onNotification((data) => {
-  if (showNotificationsCheckbox.checked) {
-    // Get or create notification container
-    let notificationContainer = document.getElementById('notification-container');
-    if (!notificationContainer) {
-      notificationContainer = document.createElement('div');
-      notificationContainer.id = 'notification-container';
-      document.body.appendChild(notificationContainer);
-    }
-
-    const notification = document.createElement('div');
-    notification.className = `custom-notification ${data.type}`;
-    
-    const iconClass = data.type === 'success' ? 'fa-check-circle' :
-                      data.type === 'warning' ? 'fa-exclamation-triangle' :
-                      data.type === 'danger' ? 'fa-ban' : 'fa-info-circle';
-
-    notification.innerHTML = `
-      <div class="custom-notification-header">
-        <i class="fas ${iconClass} custom-notification-icon"></i>
-        <h3 class="custom-notification-title">${data.title}</h3>
-        <button class="custom-notification-close">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="custom-notification-content">
-        <p class="custom-notification-message">${data.message}</p>
-      </div>
-    `;
-
-    notificationContainer.appendChild(notification);
-
-    // Remove older notifications if more than 3
-    const notifications = notificationContainer.querySelectorAll('.custom-notification');
-    if (notifications.length > 3) {
-      notifications[0].remove();
-    }
-
-    // Handle close button
-    const closeBtn = notification.querySelector('.custom-notification-close');
-    closeBtn.addEventListener('click', () => {
-      notification.style.animation = 'slideOutNotification 0.3s ease-out forwards';
-      setTimeout(() => notification.remove(), 300);
-    });
-
-    // Auto remove after 5 seconds for success messages
-    if (data.type === 'success') {
-      setTimeout(() => {
-        if (notification.parentElement) {
-          notification.style.animation = 'slideOutNotification 0.3s ease-out forwards';
-          setTimeout(() => notification.remove(), 300);
-        }
-      }, 5000);
-    }
-  }
-
-  // Always add to activity list
+  // Only add to activity list, skip notifications
   addActivityItem({
     type: data.type,
     title: data.title,
@@ -423,6 +378,17 @@ window.api.onMonitoringStatus((isActive) => {
 
 // Initialize
 document.addEventListener("DOMContentLoaded", async () => {
+  // Reset stats on load
+  stats = {
+    total: 0,
+    safe: 0,
+    warning: 0,
+    blocked: 0
+  };
+  
+  // Update stats display
+  updateStatsUI();
+  
   try {
     const savedSettings = await window.api.getSettings()
     if (savedSettings) {

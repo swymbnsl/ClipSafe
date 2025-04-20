@@ -4,26 +4,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ClipSafe</title>
+  <title>ClipSafe - Clipboard Protection Tool</title>
+  <meta name="description" content="ClipSafe - A tool to monitor and protect your clipboard data">
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 
 <body>
   <div class="app-container">
     <header class="app-header">
-      <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
-        <i class="fas fa-moon"></i>
-      </button>
       <h1 class="app-title">
         <i class="fas fa-shield-alt"></i>
         ClipSafe
       </h1>
+      <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle dark/light theme">
+        <i class="fas fa-moon"></i>
+      </button>
     </header>
 
     <main>
-      <!-- Stats Overview -->
+
       <div class="stats-container">
+        <div class="stat-card">
+          <h3><i class="fas fa-clipboard-list"></i>Total Checks</h3>
+          <div class="value" id="total-checks">0</div>
+          <div class="stat-label">Clipboard events analyzed</div>
+        </div>
         <div class="stat-card">
           <h3><i class="fas fa-shield-check"></i>Safe Content</h3>
           <div class="value" id="safe-count">0</div>
@@ -46,12 +53,12 @@
         </div>
       </div>
 
-      <div class="tab-nav">
-        <button class="tab-btn active" data-tab="activity">
+      <div class="tab-nav" role="tablist">
+        <button class="tab-btn active" data-tab="activity" role="tab" aria-selected="true" aria-controls="activity">
           <i class="fas fa-chart-line"></i>
           Activity
         </button>
-        <button class="tab-btn" data-tab="settings">
+        <button class="tab-btn" data-tab="settings" role="tab" aria-selected="false" aria-controls="settings">
           <i class="fas fa-cog"></i>
           Settings
         </button>
@@ -59,30 +66,38 @@
 
       <div class="tab-content">
         <!-- Activity Tab -->
-        <div id="activity" class="tab-pane active">
+        <div id="activity" class="tab-pane active" role="tabpanel" aria-labelledby="activity-tab">
           <div class="activity-header">
             <h2><i class="fas fa-history"></i> Recent Activity</h2>
-            <div class="status-indicator" id="monitor-status">
+            <div class="status-indicator" id="monitor-status" tabindex="0" role="button"
+              aria-label="Toggle monitoring status">
               <span class="dot"></span>
               <span>Monitoring</span>
             </div>
-            <button id="clear-logs" class="btn-secondary">
+            <button id="clear-logs" class="btn-secondary" aria-label="Clear all logs">
               <i class="fas fa-trash"></i>
               Clear Logs
             </button>
           </div>
           <div id="logs-container" class="logs-container">
-            <ul id="activity-list" class="activity-list"></ul>
+            <ul id="activity-list" class="activity-list">
+              <!-- Activity items will be inserted here dynamically -->
+              <div class="empty-state">
+                <i class="fas fa-clipboard"></i>
+                <h3>No Activity Yet</h3>
+                <p>Clipboard events will appear here once detected</p>
+              </div>
+            </ul>
           </div>
         </div>
 
         <!-- Settings Tab -->
-        <div id="settings" class="tab-pane">
+        <div id="settings" class="tab-pane" role="tabpanel" aria-labelledby="settings-tab">
           <div class="settings-container">
             <div class="setting-group">
               <h3><i class="fas fa-sliders-h"></i> Application Settings</h3>
               <div class="setting-item">
-                <label>
+                <label for="start-minimized">
                   <input type="checkbox" id="start-minimized" />
                   <span>Start Minimized</span>
                 </label>
@@ -91,23 +106,21 @@
                 </div>
               </div>
               <div class="setting-item">
-                <label>
+                <label for="start-monitoring">
                   <input type="checkbox" id="start-monitoring" />
                   <span>Start Monitoring on Launch</span>
                 </label>
                 <div class="description">
-                  Automatically start clipboard monitoring when the app
-                  launches
+                  Automatically start clipboard monitoring when the app launches
                 </div>
               </div>
               <div class="setting-item">
-                <label>
+                <label for="show-notifications">
                   <input type="checkbox" id="show-notifications" checked />
                   <span>Show Notifications</span>
                 </label>
                 <div class="description">
-                  Display toast notifications for clipboard events and
-                  warnings
+                  Display toast notifications for clipboard events and warnings
                 </div>
               </div>
             </div>
@@ -124,6 +137,9 @@
       <p>ClipSafe &copy; 2025 | <i class="fas fa-shield-alt"></i> Protecting your clipboard</p>
     </footer>
   </div>
+
+  <!-- Notification Container -->
+  <div id="notification-container"></div>
 
   <script src="renderer.js"></script>
 </body>
