@@ -78,7 +78,7 @@ body {
 /* Header styles */
 .app-header {
   background: var(--card-bg);
-  padding: var(--spacing-lg);
+  padding: 1%;;
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
   position: sticky;
@@ -217,11 +217,103 @@ main {
   margin-bottom: var(--spacing-sm);
   border: 1px solid var(--border-color);
   transition: var(--transition);
+  animation: highlight 2s ease-out;
 }
 
 .activity-item:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
+}
+
+.activity-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.activity-message {
+  color: var(--text-color);
+}
+
+.app-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.log-section {
+  background: var(--bg-color);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.log-section strong {
+  color: var(--primary-color);
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.log-section pre {
+  font-family: monospace;
+  font-size: 0.9em;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text-light);
+  margin: 4px 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.log-section .safe {
+  color: var(--success-color);
+}
+
+.log-section .threat {
+  color: var(--danger-color);
+  font-weight: 500;
+}
+
+@keyframes highlight {
+  0% { background-color: rgba(92, 124, 250, 0.1); }
+  100% { background-color: transparent; }
+}
+
+.log-section {
+  background: var(--bg-color);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.log-section strong {
+  color: var(--primary-color);
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.log-section pre {
+  font-family: monospace;
+  font-size: 0.9em;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text-light);
+  margin: 4px 0;
+}
+
+.threat {
+  color: var(--danger-color);
+  font-weight: 500;
+}
+
+.activity-time {
+  font-size: 0.85em;
+  color: var(--text-light);
 }
 
 /* Activity Layout */
@@ -320,6 +412,7 @@ main {
   background: var(--card-bg);
   color: var(--text-color);
   border: 1px solid var(--border-color);
+  margin-left: 2%;
 }
 
 #clear-logs {
@@ -683,6 +776,61 @@ main {
   margin-left: var(--spacing-sm);
   opacity: 0.7;
   font-size: 0.85rem;
+}
+
+.analysis-content {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin-top: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.threat-item {
+  background: var(--bg-color);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-md);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.threat-header {
+  background: rgba(0, 0, 0, 0.1);
+  padding: var(--spacing-sm) var(--spacing-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.threat-timestamp {
+  color: var(--text-light);
+  font-size: 0.9em;
+}
+
+.threat-category {
+  background: var(--primary-color);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+.threat-content {
+  padding: var(--spacing-md);
+}
+
+.threat-item.code .threat-category { background: var(--danger-color); }
+.threat-item.command .threat-category { background: var(--primary-color); }
+.threat-item.url .threat-category { background: var(--warning-color); }
+.threat-item.other .threat-category { background: var(--success-color); }
+
+.legend-item {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.legend-item:hover {
+  transform: translateY(-2px);
 }
 
 /* Responsive adjustments */

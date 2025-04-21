@@ -8,15 +8,14 @@
   <meta name="description" content="ClipSafe - A tool to monitor and protect your clipboard data">
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="icon" href="assets\clipsafe_logo_white.png" type="image/x-icon">
 </head>
 
 <body>
   <div class="app-container">
     <header class="app-header">
       <h1 class="app-title">
-        <i class="fas fa-shield-alt"></i>
-        ClipSafe
+        <img src="assets\clipsafe_logo_white.png" alt="" class="app-logo"> ClipSafe
       </h1>
       <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle dark/light theme">
         <i class="fas fa-moon"></i>
@@ -24,26 +23,24 @@
     </header>
 
     <main>
-
       <div class="stats-container">
         <div class="stat-card">
-          <h3><i class="fas fa-clipboard-list"></i>Total Checks</h3>
+          <h3><i class="fas fa-clipboard-list"></i> Total Checks</h3>
           <div class="value" id="total-checks">0</div>
           <div class="stat-label">Clipboard events analyzed</div>
         </div>
         <div class="stat-card">
-          <h3><i class="fas fa-shield-check"></i>Safe Content</h3>
+          <h3><i class="fas fa-shield-check"></i> Safe Content</h3>
           <div class="value" id="safe-count">0</div>
           <div class="stat-label">Total safe clipboard events</div>
         </div>
         <div class="stat-card">
-          <h3><i class="fas fa-exclamation-triangle"></i>Warnings</h3>
+          <h3><i class="fas fa-exclamation-triangle"></i> Warnings</h3>
           <div class="value" id="warning-count">0</div>
           <div class="stat-label">Potentially unsafe events</div>
         </div>
-
         <div class="stat-card">
-          <h3><i class="fas fa-clock"></i>Monitoring Time</h3>
+          <h3><i class="fas fa-clock"></i> Monitoring Time</h3>
           <div class="value" id="monitor-time">0m</div>
           <div class="stat-label">Since app launch</div>
         </div>
@@ -51,16 +48,13 @@
 
       <div class="tab-nav" role="tablist">
         <button class="tab-btn active" data-tab="activity" role="tab" aria-selected="true" aria-controls="activity">
-          <i class="fas fa-chart-line"></i>
-          Activity
+          <i class="fas fa-chart-line"></i> Activity
         </button>
-        <button class="tab-btn" data-tab="analysis" role="tab" aria-selected="false" aria-controls="analysis">
-          <i class="fas fa-chart-pie"></i>
-          Analysis
-        </button>
+        <!-- <button class="tab-btn" data-tab="analysis" role="tab" aria-selected="false" aria-controls="analysis">
+          <i class="fas fa-chart-pie"></i> Analysis
+        </button> -->
         <button class="tab-btn" data-tab="settings" role="tab" aria-selected="false" aria-controls="settings">
-          <i class="fas fa-cog"></i>
-          Settings
+          <i class="fas fa-cog"></i> Settings
         </button>
       </div>
 
@@ -75,13 +69,11 @@
               <span>Monitoring</span>
             </div>
             <button id="clear-logs" class="btn-secondary" aria-label="Clear all logs">
-              <i class="fas fa-trash"></i>
-              Clear Logs
+              <i class="fas fa-trash"></i> Clear Logs
             </button>
           </div>
           <div id="logs-container" class="logs-container">
             <ul id="activity-list" class="activity-list">
-              <!-- Activity items will be inserted here dynamically -->
               <div class="empty-state">
                 <i class="fas fa-clipboard"></i>
                 <h3>No Activity Yet</h3>
@@ -101,30 +93,23 @@
                   <input type="checkbox" id="start-minimized" />
                   <span>Start Minimized</span>
                 </label>
-                <div class="description">
-                  Launch ClipSafe in the system tray when Windows starts
-                </div>
+                <div class="description">Launch ClipSafe in the system tray when Windows starts</div>
               </div>
               <div class="setting-item">
                 <label for="start-monitoring">
                   <input type="checkbox" id="start-monitoring" />
                   <span>Start Monitoring on Launch</span>
                 </label>
-                <div class="description">
-                  Automatically start clipboard monitoring when the app launches
-                </div>
+                <div class="description">Automatically start clipboard monitoring when the app launches</div>
               </div>
               <div class="setting-item">
                 <label for="show-notifications">
                   <input type="checkbox" id="show-notifications" checked />
                   <span>Show Notifications</span>
                 </label>
-                <div class="description">
-                  Display toast notifications for clipboard events and warnings
-                </div>
+                <div class="description">Display toast notifications for clipboard events and warnings</div>
               </div>
             </div>
-
             <button id="save-settings" class="btn-primary">
               <i class="fas fa-save"></i> Save Settings
             </button>
@@ -132,44 +117,47 @@
         </div>
 
         <!-- Analysis Tab -->
-        <div id="analysis" class="tab-pane" role="tabpanel" aria-labelledby="analysis-tab">
+        <!-- <div id="analysis" class="tab-pane" role="tabpanel" aria-labelledby="analysis-tab">
           <div class="analysis-container">
             <div class="chart-section">
-              <h2><i class="fas fa-chart-pie"></i> Threat Distribution</h2>
+              <h2><i class="fas fa-chart-pie"></i> </h2>
               <div class="chart-wrapper">
                 <canvas id="threatChart"></canvas>
               </div>
               <div class="chart-legend">
-                <div class="legend-item">
+                <div class="legend-item" data-category="code">
                   <span class="legend-color code"></span>
-                  <span>Code Threats</span>
+                  <span>Code Threats <span class="threat-count">(0)</span></span>
                 </div>
-                <div class="legend-item">
+                <div class="legend-item" data-category="command">
                   <span class="legend-color command"></span>
-                  <span>Command Threats</span>
+                  <span>Command Threats <span class="threat-count">(0)</span></span>
                 </div>
-                <div class="legend-item">
+                <div class="legend-item" data-category="url">
                   <span class="legend-color url"></span>
-                  <span>URL Threats</span>
+                  <span>URL Threats <span class="threat-count">(0)</span></span>
                 </div>
-                <div class="legend-item">
+                <div class="legend-item" data-category="other">
                   <span class="legend-color other"></span>
-                  <span>Other Threats</span>
+                  <span>Other Threats <span class="threat-count">(0)</span></span>
                 </div>
+              </div>
+            </div>
+            <div id="threatAnalysisContent" class="analysis-content">
+              <div class="empty-state">
+                <i class="fas fa-shield-alt"></i>
+                <h3>Select a threat category to view details</h3>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
     </main>
 
     <footer class="app-footer">
-      <p>ClipSafe &copy; 2025 | <i class="fas fa-shield-alt"></i> Protecting your clipboard</p>
+      <p>ClipSafe © 2025 | <i class="fas fa-shield-alt"></i> Protecting your clipboard</p>
     </footer>
   </div>
-
-  <!-- Notification Container -->
-  <div id="notification-container"></div>
 
   <script src="renderer.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

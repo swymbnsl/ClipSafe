@@ -34,7 +34,7 @@ function createWindow() {
       contextIsolation: false,
       preload: path.join(__dirname, "preload.js"),
     },
-    icon: path.join(__dirname, "assets/icon.png"),
+    icon: path.join(__dirname, "assets/clipsafe_logo_white.png"),
     title: "ClipSafe",
     frame: true,
     show: false,
@@ -57,10 +57,10 @@ function createWindow() {
 
 // Create system tray
 function createTray() {
-  const iconPath = path.join(__dirname, "assets/icon.png")
+  const iconPath = path.join(__dirname, "assets/clipsafe_logo_white.png")
   const trayIcon = nativeImage
     .createFromPath(iconPath)
-    .resize({ width: 16, height: 16 })
+    .resize({ width: 32, height: 32 })
 
   tray = new Tray(trayIcon)
   tray.setToolTip("ClipSafe")
