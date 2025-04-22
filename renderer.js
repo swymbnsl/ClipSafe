@@ -8,7 +8,7 @@ const startMinimizedCheckbox = document.getElementById("start-minimized");
 const startMonitoringCheckbox = document.getElementById("start-monitoring");
 const showNotificationsCheckbox = document.getElementById("show-notifications");
 const saveSettingsBtn = document.getElementById("save-settings");
-
+const minimizeToTrayCheckbox = document.getElementById("minimize-to-tray");
 
 let stats = {
   total: 0,
@@ -18,11 +18,9 @@ let stats = {
 };
 let monitorStart = Date.now();
 
-
 const toastContainer = document.createElement("div");
 toastContainer.className = "toast-container";
 document.body.appendChild(toastContainer);
-
 
 let threatData = { 
   code: { count: 0, items: [] },
@@ -37,7 +35,6 @@ const chartColors = {
   url: "#FFCE56",
   other: "#4BC0C0",
 };
-
 
 function updateStats(type, msgData) {
   if (msgData?.stats?.total_checks) {
@@ -90,12 +87,17 @@ saveSettingsBtn.addEventListener("click", async () => {
     start_minimized: startMinimizedCheckbox.checked,
     start_monitoring: startMonitoringCheckbox.checked,
     show_notifications: showNotificationsCheckbox.checked,
+    minimize_to_tray: minimizeToTrayCheckbox ? minimizeToTrayCheckbox.checked : true,
   };
+
+  // Show immediate feedback
+  showToast("Saving...", "Please wait while settings are updated.", "info");
+
   try {
     await window.api.saveSettings(settings);
-    showToast("Settings Saved", "Preferences updated successfully.", "success");
+    showToast("Settings Saved", "Your preferences have been updated successfully.", "success");
   } catch (error) {
-    showToast("Settings Error", "Failed to save settings.", "danger");
+    showToast("Settings Error", "Failed to save settings. Please try again.", "danger");
   }
 });
 
@@ -448,14 +450,30 @@ themeToggle.addEventListener("click", () => {
 const monitorStatus = document.getElementById("monitor-status");
 let isMonitoring = true;
 
+function updateMonitorStatusUI() {
+  monitorStatus.classList.toggle("inactive", !isMonitoring);
+  const dot = monitorStatus.querySelector(".dot");
+  const label = monitorStatus.querySelector("span:last-child");
+  if (isMonitoring) {
+    dot.style.background = "#40c057"; // green
+    label.textContent = "Monitoring";
+  } else {
+    dot.style.background = "#fa5252"; // red
+    label.textContent = "Not Monitoring";
+  }
+}
+
+// Toggle monitoring and update UI immediately
 monitorStatus.addEventListener("click", () => {
+  isMonitoring = !isMonitoring;
+  updateMonitorStatusUI();
   window.api.toggleMonitoring();
 });
 
+// Always sync with main process if state changes from elsewhere
 window.api.onMonitoringStateChange((isActive) => {
   isMonitoring = isActive;
-  monitorStatus.classList.toggle("inactive", !isActive);
-  monitorStatus.querySelector("span:last-child").textContent = isActive ? "Monitoring" : "Not Monitoring";
+  updateMonitorStatusUI();
 });
 
 // Initialize
@@ -472,6 +490,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       startMonitoringCheckbox.checked = savedSettings.start_monitoring || false;
       showNotificationsCheckbox.checked = savedSettings.show_notifications !== false;
     }
+    if (minimizeToTrayCheckbox) minimizeToTrayCheckbox.checked = true;
     showToast("Welcome to ClipSafe", "Clipboard protection started.", "success");
   } catch (error) {
     showToast("Settings Error", "Failed to load settings.", "warning");
@@ -483,4 +502,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       updateThreatAnalysis(category);
     });
   });
+
+  updateMonitorStatusUI();
 });

@@ -23,6 +23,7 @@ let tray = null
 let pythonProcess = null
 let notificationWindow = null;
 let isMonitoring = true;
+let minimizeToTray = true; // default
 
 // Create the main window
 function createWindow() {
@@ -49,9 +50,15 @@ function createWindow() {
     mainWindow.show()
   })
 
-  // Handle window close
-  mainWindow.on("closed", () => {
-    mainWindow = null
+  // Handle window close (minimize to tray logic)
+  mainWindow.on("close", (e) => {
+    if (minimizeToTray) {
+      e.preventDefault();
+      mainWindow.hide();
+    } else {
+      mainWindow = null;
+      app.quit();
+    }
   })
 }
 
@@ -65,40 +72,52 @@ function createTray() {
   tray = new Tray(trayIcon)
   tray.setToolTip("ClipSafe")
 
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: "Open ClipSafe",
-      click: () => {
-        if (mainWindow === null) {
-          createWindow()
-        } else {
-          mainWindow.show()
-        }
+  function updateTrayMenu() {
+    const monitoringLabel = isMonitoring ? "Stop Monitoring" : "Start Monitoring";
+    const monitoringIcon = isMonitoring ? "🔴" : "🟢";
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: "Open ClipSafe",
+        click: () => {
+          if (mainWindow === null) {
+            createWindow()
+          } else {
+            mainWindow.show()
+          }
+        },
       },
-    },
-    { type: "separator" },
-    {
-      label: "Start Monitoring",
-      click: () => {
-        startPythonProcess()
+      { type: "separator" },
+      {
+        label: `${monitoringIcon} ${monitoringLabel}`,
+        click: () => {
+          isMonitoring = !isMonitoring;
+          if (!isMonitoring) {
+            stopPythonProcess();
+          } else {
+            startPythonProcess();
+          }
+          updateTrayMenu();
+          if (mainWindow) {
+            mainWindow.webContents.send("monitoring-state-changed", isMonitoring);
+          }
+          if (notificationWindow) {
+            notificationWindow.webContents.send("monitoring-state-changed", isMonitoring);
+          }
+        },
       },
-    },
-    {
-      label: "Stop Monitoring",
-      click: () => {
-        stopPythonProcess()
+      { type: "separator" },
+      {
+        label: "Quit",
+        click: () => {
+          minimizeToTray = false;
+          app.quit();
+        },
       },
-    },
-    { type: "separator" },
-    {
-      label: "Quit",
-      click: () => {
-        app.quit()
-      },
-    },
-  ])
+    ]);
+    tray.setContextMenu(contextMenu);
+  }
 
-  tray.setContextMenu(contextMenu)
+  updateTrayMenu();
 
   // Show window on tray icon click
   tray.on("click", () => {
@@ -107,7 +126,10 @@ function createTray() {
     } else {
       mainWindow.show()
     }
-  })
+  });
+
+  // Expose for monitoring toggle
+  tray.updateTrayMenu = updateTrayMenu;
 }
 
 // Start Python process
@@ -267,6 +289,9 @@ ipcMain.on("toggle-monitoring", () => {
   if (notificationWindow) {
     notificationWindow.webContents.send("monitoring-state-changed", isMonitoring);
   }
+  if (tray && tray.updateTrayMenu) {
+    tray.updateTrayMenu();
+  }
 });
 
 // Add domain analysis handler
@@ -331,6 +356,7 @@ app.on("activate", () => {
 
 // Handle IPC messages from renderer
 ipcMain.on("save-settings", (event, settings) => {
+  minimizeToTray = !!settings.minimize_to_tray;
   // Since we're using environment variables for Groq API key, we don't need to save it here
   // Restart Python process with new settings
   stopPythonProcess()
