@@ -420,6 +420,7 @@ async function parseLogFile() {
 
 // Event Listeners for Main Process
 window.api.onNotification((data) => {
+  console.log("Renderer received notification event:", data);
   addActivityItem({
     type: data.type,
     severity: data.type === "success" ? "info" : data.type,

@@ -112,6 +112,7 @@
         }
 
         ipcRenderer.on('show-notification', (event, data) => {
+            console.log("Received show-notification event:", data);
             const container = document.getElementById('notification-container');
             // Remove any previous notification
             container.innerHTML = '';
@@ -147,6 +148,7 @@
                 });
 
             } catch (e) {
+                console.error("Error rendering notification:", e);
                 popup.innerHTML = `
                     <div class="popup-header">
                         <i class="fas fa-shield-alt"></i>
@@ -166,7 +168,7 @@
 
             container.appendChild(popup);
 
-            // Auto-close after 5 seconds
+            // Auto-close after 10 seconds (not 5)
             setTimeout(() => {
                 popup.style.animation = 'slideOutNotification 0.3s ease-out forwards';
                 setTimeout(() => {

@@ -152,12 +152,16 @@ function startPythonProcess() {
       // Only create notification window for harmful content
       if (data.type === "notification" && 
          (data.notification_type === 'warning' || data.notification_type === 'danger')) {
+        console.log("Creating notification window for:", data.title);
         createNotificationWindow(() => {
-          notificationWindow.webContents.send('show-notification', {
-            title: data.title,
-            message: data.message,
-            type: data.notification_type
-          });
+          if (notificationWindow) {
+            notificationWindow.webContents.send('show-notification', {
+              title: data.title,
+              message: data.message,
+              type: data.notification_type,
+              details: data.details || null // Ensure details are passed for click
+            });
+          }
         });
       }
     } catch (error) {
@@ -183,11 +187,11 @@ function stopPythonProcess() {
 }
 
 // Create notification window
-// Changes for main.js - in the createNotificationWindow function
-// Update this function in your main.js file
 function createNotificationWindow(callback) {
   // If window already exists, just show notification
   if (notificationWindow) {
+    console.log("Notification window already exists, reusing.");
+    notificationWindow.show();
     callback();
     return;
   }
@@ -208,32 +212,43 @@ function createNotificationWindow(callback) {
   });
 
   notificationWindow.loadFile('notification.html');
-  
+
   notificationWindow.webContents.once('did-finish-load', () => {
     const { screen } = require('electron');
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
-    
-    // Position at bottom right with no extra spacing
+
     notificationWindow.setBounds({
       width: 400,
       height: 200,
       x: width - 400,
       y: height - 200
     });
-    
-    // Ensure no additional padding is applied
+
     notificationWindow.setContentBounds({
       width: 400,
       height: 200,
       x: width - 400,
       y: height - 200
     });
-    
-    notificationWindow.show();
+
+    notificationWindow.showInactive(); // Use showInactive to avoid stealing focus
+    notificationWindow.setAlwaysOnTop(true, "screen-saver");
+    notificationWindow.setVisibleOnAllWorkspaces(true);
+
+    console.log("Notification window shown.");
     callback();
   });
+
+  notificationWindow.on('closed', () => {
+    notificationWindow = null;
+  });
+
+  notificationWindow.on('ready-to-show', () => {
+    notificationWindow.showInactive();
+  });
 }
+
 // Handle monitoring toggle
 ipcMain.on("toggle-monitoring", () => {
   isMonitoring = !isMonitoring;

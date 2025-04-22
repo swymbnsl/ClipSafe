@@ -15,7 +15,10 @@ window.api = {
 
   // Listen for notifications from main process
   onNotification: (callback) => {
-    ipcRenderer.on("notification", (event, data) => callback(data))
+    ipcRenderer.on("notification", (event, data) => {
+      console.log("Renderer received notification:", data);
+      callback(data);
+    })
   },
 
   // Listen for logs from main process
