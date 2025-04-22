@@ -11,6 +11,7 @@
             padding: 0;
             background: transparent !important;
             overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
 
         body {
@@ -31,24 +32,42 @@
         }
 
         .popup-notification {
-            background: var(--card-bg, #25262b);
-            color: var(--text-color, #e4e5e7);
-            border-radius: 8px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--border-color, #2c2e33);
+            background: var(--card-bg, #1e2025);
+            color: var(--text-color, #f0f1f3);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-color, #2d3035);
             width: 100%;
             height: 100%;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             pointer-events: auto;
+            transition: all 0.2s ease;
+        }
+
+        .popup-notification:hover {
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+            transform: translateY(-2px);
         }
 
         .popup-header {
             display: flex;
             align-items: center;
-            padding: 0.75rem 1rem;
-            background: rgba(0, 0, 0, 0.15);
+            padding: 0.85rem 1.25rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+
+        .logo-container img {
+            height: 22px;
+            margin-right: 8px;
         }
 
         .popup-header .popup-title {
@@ -56,6 +75,7 @@
             font-weight: 600;
             margin: 0;
             flex: 1;
+            letter-spacing: 0.2px;
         }
 
         .popup-header .popup-close {
@@ -63,33 +83,61 @@
             border: none;
             color: var(--text-light, #9da1a6);
             cursor: pointer;
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
             font-size: 1rem;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            margin-left: 8px;
         }
 
         .popup-header .popup-close:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--text-color, #e4e5e7);
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--text-color, #f0f1f3);
         }
 
         .popup-content {
-            padding: 0.75rem 1rem;
+            padding: 1rem 1.25rem;
             flex: 1;
             overflow-y: auto;
+            line-height: 1.5;
         }
 
         .popup-content p {
-            margin: 0;
+            margin: 0 0 0.5rem;
             word-break: break-word;
+        }
+
+        .popup-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .groq-analysis {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .threat {
+            margin-top: 0.75rem;
+            padding: 0.5rem;
+            background: rgba(255, 59, 48, 0.15);
+            border-left: 3px solid rgba(255, 59, 48, 0.7);
+            border-radius: 4px;
+        }
+
+        .threat i {
+            color: rgba(255, 59, 48, 0.9);
+            margin-right: 8px;
         }
 
         .notification-footer {
             text-align: right;
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.25rem;
             color: var(--text-light, #9da1a6);
             font-size: 0.85em;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -126,8 +174,10 @@
 
                 popup.innerHTML = `
                     <div class="popup-header">
-                        <i class="fas fa-shield-alt"></i>
-                        <span class="popup-title">${data.title}</span>
+                        <div class="logo-container">
+                            <img src="assets/clipsafe_logo_white.png" alt="ClipSafe Logo">
+                            <span class="popup-title">${data.title}</span>
+                        </div>
                         <button class="popup-close" title="Close">
                             <i class="fas fa-times"></i>
                         </button>
@@ -151,8 +201,10 @@
                 console.error("Error rendering notification:", e);
                 popup.innerHTML = `
                     <div class="popup-header">
-                        <i class="fas fa-shield-alt"></i>
-                        <span class="popup-title">${data.title}</span>
+                        <div class="logo-container">
+                            <img src="/clipsafe_logo_white.png" alt="ClipSafe Logo">
+                            <span class="popup-title">${data.title}</span>
+                        </div>
                         <button class="popup-close" title="Close">
                             <i class="fas fa-times"></i>
                         </button>

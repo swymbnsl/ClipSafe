@@ -198,7 +198,7 @@ function createNotificationWindow(callback) {
 
   notificationWindow = new BrowserWindow({
     width: 400,
-    height: 200,
+    height: 250,
     frame: false,
     skipTaskbar: true,
     alwaysOnTop: true,
@@ -220,16 +220,16 @@ function createNotificationWindow(callback) {
 
     notificationWindow.setBounds({
       width: 400,
-      height: 200,
+      height: 250,
       x: width - 400,
-      y: height - 200
+      y: height - 250
     });
 
     notificationWindow.setContentBounds({
       width: 400,
-      height: 200,
+      height: 250,
       x: width - 400,
-      y: height - 200
+      y: height - 250
     });
 
     notificationWindow.showInactive(); // Use showInactive to avoid stealing focus

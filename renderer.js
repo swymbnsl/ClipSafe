@@ -9,7 +9,7 @@ const startMonitoringCheckbox = document.getElementById("start-monitoring");
 const showNotificationsCheckbox = document.getElementById("show-notifications");
 const saveSettingsBtn = document.getElementById("save-settings");
 
-// Stats
+
 let stats = {
   total: 0,
   safe: 0,
@@ -18,12 +18,12 @@ let stats = {
 };
 let monitorStart = Date.now();
 
-// Toast Container
+
 const toastContainer = document.createElement("div");
 toastContainer.className = "toast-container";
 document.body.appendChild(toastContainer);
 
-// Initialize threat stats with additional data
+
 let threatData = { 
   code: { count: 0, items: [] },
   command: { count: 0, items: [] },
@@ -38,7 +38,7 @@ const chartColors = {
   other: "#4BC0C0",
 };
 
-// Update Stats
+
 function updateStats(type, msgData) {
   if (msgData?.stats?.total_checks) {
     stats.total = msgData.stats.total_checks;
@@ -240,7 +240,6 @@ function updateThreatAnalysis(selectedCategory) {
 
 // Add Activity Item
 function addActivityItem(data) {
-  // Remove empty state if present
   const emptyState = activityList.querySelector(".empty-state");
   if (emptyState) emptyState.remove();
 
@@ -248,92 +247,75 @@ function addActivityItem(data) {
   activityItem.className = "activity-item";
 
   try {
-    // Parse message data
     let msgData;
+
+    // Try parsing incoming data
     if (typeof data.message === "string") {
       try {
-        // Find and parse JSON content
         const jsonMatches = data.message.match(/\{[^]*\}/g);
-        if (jsonMatches) {
-          // Try each match until we find valid JSON
-          for (const match of jsonMatches) {
-            try {
-              msgData = JSON.parse(match);
-              break;
-            } catch (e) {
-              continue;
-            }
-          }
+        for (const match of jsonMatches || []) {
+          try {
+            msgData = JSON.parse(match);
+            break;
+          } catch {}
         }
-        if (!msgData) {
-          msgData = { text: data.message };
-        }
-      } catch (e) {
+        if (!msgData) msgData = { text: data.message };
+      } catch {
         msgData = { text: data.message };
       }
-    } else {
+    } else if (typeof data.message === "object" && data.message !== null) {
       msgData = data.message;
+    } else {
+      msgData = { text: String(data.message) };
     }
 
-    const type = msgData.severity || data.severity || "info";
-    updateStats(type, msgData);
+    // Extract relevant info
+    const analysis = msgData.groq_analysis || {};
+    const isSafe = analysis.is_safe;
+    const explanation = analysis.explanation || "No explanation available.";
+    const threat = analysis.potential_threat && analysis.potential_threat !== "None identified"
+      ? analysis.potential_threat
+      : null;
 
-    const iconClass =
-      type === "warning" ? "fa-exclamation-triangle" :
-      type === "danger" ? "fa-ban" : "fa-check-circle";
-
-    let content = "";
-
-    // Handle content display
-    if (msgData.content) {
-      content += `<div class="log-section content-preview">
-        <strong>Content:</strong>
-        <pre>${msgData.content}</pre>
-      </div>`;
-    } else if (msgData.text) {
-      content += `<div class="log-section">
-        <pre>${msgData.text}</pre>
-      </div>`;
+    // Get copied text (msgData.content or msgData.text)
+    let copiedText = msgData.content || msgData.text || "[No content available]";
+    if (typeof copiedText === "object") {
+      copiedText = JSON.stringify(copiedText, null, 2);
     }
 
-    // Add analysis section if present
-    if (msgData.groq_analysis) {
-      const groq = msgData.groq_analysis;
-      content += `<div class="log-section">
-        <strong>AI Analysis:</strong><br>
-        • Category: ${groq.category || "N/A"}<br>
-        • Confidence: ${groq.confidence ? (groq.confidence * 100).toFixed(1) + "%" : "N/A"}<br>
-        • Assessment: ${groq.explanation || "N/A"}<br>
-        ${groq.potential_threat ? 
-          `• <span class="threat">Threat: ${groq.potential_threat}</span>` : ""}
-      </div>`;
+    const label = isSafe
+      ? `<span class="label-safe"><i class="fas fa-check-circle"></i> Safe</span>`
+      : `<span class="label-danger"><i class="fas fa-exclamation-triangle"></i> Threat Detected</span>`;
 
-      if (!groq.is_safe) {
-        const category = groq.category?.toLowerCase() || "other";
-        updateThreatChart(
-          category,
-          msgData.content || msgData.text,
-          groq
-        );
-      }
-    }
+    // Final content layout
+    let content = `
+      <div class="log-section">
+        <strong>Copied Text:</strong>
+        <pre>${copiedText}</pre>
+      </div>
+      <div class="log-section">
+        <strong>AI Assessment:</strong>
+        <p>${explanation}</p>
+      </div>
+      ${threat ? `
+        <div class="log-section">
+          <strong class="threat">Potential Threat:</strong>
+          <p>${threat}</p>
+        </div>` : ""}
+      <div class="log-section">
+        ${label}
+      </div>
+    `;
 
-    // Add local check results if present
-    if (msgData.local_check) {
-      content += `<div class="log-section">
-        <strong>Local Check:</strong><br>
-        <span class="${msgData.local_check.is_safe ? "safe" : "threat"}">
-          ${msgData.local_check.message}
-        </span>
-      </div>`;
-    }
+    const iconClass = isSafe ? "fa-check-circle" : "fa-exclamation-triangle";
+    const severityClass = isSafe ? "info" : "danger";
 
     activityItem.innerHTML = `
-      <div class="activity-icon ${type}">
+      <div class="activity-icon ${severityClass}">
         <i class="fas ${iconClass}"></i>
       </div>
       <div class="activity-content">
-        <div class="activity-message">${content || "No details available"}</div>
+        <div class="activity-message">${content}</div>
         <div class="activity-time">${
           msgData.timestamp || new Date().toLocaleTimeString([], {
             hour: "2-digit",
@@ -346,16 +328,13 @@ function addActivityItem(data) {
 
   } catch (e) {
     console.error("Error processing activity item:", e);
-    // Fallback for unparseable messages
     activityItem.innerHTML = `
       <div class="activity-icon info">
         <i class="fas fa-info-circle"></i>
       </div>
       <div class="activity-content">
         <div class="activity-message">
-          <div class="log-section">
-            <pre>${data.message || "Error displaying message"}</pre>
-          </div>
+          <pre>${JSON.stringify(data.message, null, 2)}</pre>
         </div>
         <div class="activity-time">${new Date().toLocaleTimeString([], {
           hour: "2-digit",
@@ -365,10 +344,8 @@ function addActivityItem(data) {
       </div>`;
   }
 
-  // Insert at the top
   activityList.insertBefore(activityItem, activityList.firstChild);
 
-  // Limit to 50 items
   while (activityList.children.length > 50) {
     activityList.removeChild(activityList.lastChild);
   }

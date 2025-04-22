@@ -163,7 +163,7 @@ class ClipboardSafetyScanner:
             content_to_analyze = content[:5000] if len(content) > 5000 else content
             
             data = {
-                "model": "compound-beta-mini",
+                "model": "llama3-70b-8192",
                 "messages": [
                     {
                         "role": "system",
