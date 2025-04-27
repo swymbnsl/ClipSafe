@@ -2,7 +2,12 @@
 
 ClipSafe is a beautiful, modern desktop application that monitors your clipboard for potentially harmful content. It combines pattern matching and AI-powered analysis to detect and protect against malicious content before it can cause harm to your system.
 
-![ClipSafe Screenshot](assets/screenshot.png)
+![ClipSafe Screenshot](assets/screenshots/dashboard.png)
+
+**Checkout the demo video here:**  
+<a href="https://www.youtube.com/watch?v=Qjzt0YjpFdk" target="_blank">
+<img src="https://img.youtube.com/vi/Qjzt0YjpFdk/0.jpg" alt="Demo Video"/>
+</a>
 
 ## Features
 
@@ -65,7 +70,7 @@ ClipSafe is a beautiful, modern desktop application that monitors your clipboard
    npm install
    ```
 
-3. Install Python dependencies:
+3. Install Python dependencies (required for clipboard monitoring and AI analysis):
 
    ```
    cd python
@@ -73,20 +78,16 @@ ClipSafe is a beautiful, modern desktop application that monitors your clipboard
    cd ..
    ```
 
+   The required Python dependencies are:
+
+   - pyperclip==1.8.2
+   - requests==2.31.0
+   - pynput==1.7.6
+
 4. Start the application:
    ```
    npm start
    ```
-
-## Building for Distribution
-
-To build the application for distribution:
-
-```
-npm run build
-```
-
-This will create distributable packages in the `dist` directory.
 
 ## Configuration
 

@@ -220,7 +220,7 @@ function createNotificationWindow(callback) {
 
   notificationWindow = new BrowserWindow({
     width: 400,
-    height: 250,
+    height: 300,
     frame: false,
     skipTaskbar: true,
     alwaysOnTop: true,
@@ -242,18 +242,19 @@ function createNotificationWindow(callback) {
 
     notificationWindow.setBounds({
       width: 400,
-      height: 250,
+      height: 300,
       x: width - 400,
-      y: height - 250
+      y: height - 300
     });
 
     notificationWindow.setContentBounds({
       width: 400,
-      height: 250,
+      height: 300,
       x: width - 400,
-      y: height - 250
+      y: height - 300
     });
 
+    
     notificationWindow.showInactive(); // Use showInactive to avoid stealing focus
     notificationWindow.setAlwaysOnTop(true, "screen-saver");
     notificationWindow.setVisibleOnAllWorkspaces(true);
